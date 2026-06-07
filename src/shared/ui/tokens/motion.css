@@ -1,0 +1,50 @@
+/* ============================================================
+   min-crm — Motion layer
+   The ONLY layer authored on top of the iSolution Design System.
+   Every duration/easing below is a named law; product code must
+   reference these tokens, never raw ms/curves.
+   ============================================================ */
+
+:root {
+  /* ---- Duration scale (the authored motion ramp) ----------
+     Deliberately distinct from the DS chrome durations: motion
+     here encodes meaning, not decoration.
+     instant  optimistic apply — the mutation is already done
+     fast     hover / focus / pill tone change / toast enter
+     base     skeleton->ready, dialog & switcher enter, route, saga step
+     slow     rollback snap-back — the SLOWEST on purpose, so reversal is seen
+  */
+  --crm-instant: 0ms;
+  --crm-fast:    120ms;
+  --crm-base:    200ms;
+  --crm-slow:    320ms;
+
+  /* ---- Easing ---------------------------------------------
+     standard    moves (position/size of a thing already on screen)
+     decelerate  enters (arriving content eases to rest)  -> DS ease-out
+     accelerate  exits  (leaving content gathers speed and goes)
+  */
+  --crm-ease-standard:   cubic-bezier(0.4, 0.0, 0.2, 1);
+  --crm-ease-decelerate: var(--iso-ease-out);          /* cubic-bezier(0.22,1,0.36,1) */
+  --crm-ease-accelerate: cubic-bezier(0.4, 0.0, 1, 1);
+
+  /* ---- Travel scalar --------------------------------------
+     Multiply any transform distance by this. Reduced-motion
+     drops it to 0 so nothing physically travels, while timings
+     and opacity cross-fades still fire. */
+  --crm-travel: 1;
+}
+
+/* ---- prefers-reduced-motion ------------------------------
+   Collapse travel/transform/snap-back to 0. Keep opacity
+   cross-fades, but at fast. All state changes & feedback still
+   fire — only the physical movement is removed. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --crm-travel: 0;
+    --crm-instant: 0ms;
+    --crm-fast:    120ms;
+    --crm-base:    120ms;
+    --crm-slow:    120ms;
+  }
+}

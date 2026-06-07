@@ -1,0 +1,335 @@
+/* ============================================================
+   iSolution Design System — Foundations
+   Colors • Typography • Spacing • Radii • Shadows • Motion
+   Source of truth: /uploads/iSolution-Design-System-Reference.html
+   ============================================================ */
+
+/* ---------- 1. Fonts -------------------------------------- */
+
+@font-face { font-family: "Product Sans"; src: url("fonts/ProductSans-Thin.ttf") format("truetype");          font-weight: 100; font-style: normal; font-display: swap; }
+@font-face { font-family: "Product Sans"; src: url("fonts/ProductSans-Light.ttf") format("truetype");         font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Product Sans"; src: url("fonts/ProductSans-LightItalic.ttf") format("truetype");   font-weight: 300; font-style: italic; font-display: swap; }
+@font-face { font-family: "Product Sans"; src: url("fonts/ProductSans-Regular.ttf") format("truetype");       font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Product Sans"; src: url("fonts/ProductSans-Italic.ttf") format("truetype");        font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Product Sans"; src: url("fonts/ProductSans-Medium.ttf") format("truetype");        font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Product Sans"; src: url("fonts/ProductSans-MediumItalic.ttf") format("truetype");  font-weight: 500; font-style: italic; font-display: swap; }
+@font-face { font-family: "Product Sans"; src: url("fonts/ProductSans-Bold.ttf") format("truetype");          font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Product Sans"; src: url("fonts/ProductSans-BoldItalic.ttf") format("truetype");    font-weight: 700; font-style: italic; font-display: swap; }
+@font-face { font-family: "Product Sans"; src: url("fonts/ProductSans-Black.ttf") format("truetype");         font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Product Sans"; src: url("fonts/ProductSans-BlackItalic.ttf") format("truetype");   font-weight: 900; font-style: italic; font-display: swap; }
+
+/* Inter (UI/numerical) and IBM Plex Sans Arabic (Arabic) — Google Fonts CDN.
+   Loaded once at the top of any HTML that needs them. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* ===========================================================
+     2. Color — three blue ramps, neutrals, three semantic ramps.
+     Use semantic aliases (--iso-bg, --iso-brand, etc.) in product
+     code, NEVER raw scale values.
+     =========================================================== */
+
+  /* === Brand / Primary (Blue 1) === */
+  --iso-blue-1-50:  #dde9ff;
+  --iso-blue-1-100: #afcdff;
+  --iso-blue-1-200: #8ab5fe;
+  --iso-blue-1-300: #6097f6;
+  --iso-blue-1-400: #3174e6;
+  --iso-blue-1-500: #1455c5;
+  --iso-blue-1-600: #003ca4; /* primary brand blue */
+  --iso-blue-1-700: #002b74;
+  --iso-blue-1-800: #001d4d;
+  --iso-blue-1-900: #00102b;
+
+  /* === Blue 2 — Interactive / Link === */
+  --iso-blue-2-100: #dbeefe;
+  --iso-blue-2-200: #70b8f7;
+  --iso-blue-2-300: #429ff2;
+  --iso-blue-2-400: #147edc;
+  --iso-blue-2-500: #0068c4;
+  --iso-blue-2-600: #00569d;
+  --iso-blue-2-700: #004684;
+  --iso-blue-2-800: #013360;
+  --iso-blue-2-900: #002240;
+
+  /* === Blue 3 — Light / Accent / App background === */
+  --iso-blue-3-50:  #f5f9fd;
+  --iso-blue-3-100: #ebf1f7;
+  --iso-blue-3-200: #cfdef0;
+  --iso-blue-3-300: #9ec1e1;
+  --iso-blue-3-400: #459dde;
+  --iso-blue-3-500: #358fd1;
+  --iso-blue-3-600: #1a6fae;
+  --iso-blue-3-700: #0b5389;
+  --iso-blue-3-800: #033961;
+  --iso-blue-3-900: #00243e;
+
+  /* === Neutrals === */
+  --iso-n-50:  #f8f8f8;
+  --iso-n-100: #eeeeee;
+  --iso-n-200: #dddddd;
+  --iso-n-300: #cccccc;
+  --iso-n-400: #bbbbbb;
+  --iso-n-500: #aaaaaa;
+  --iso-n-600: #949494;
+  --iso-n-700: #585858;
+  --iso-n-800: #313131;
+  --iso-n-900: #1e1e1e;
+  --iso-n-1000: #000000;
+  --iso-white: #ffffff;
+  --iso-black: #000000;
+
+  /* === Semantic — Red (danger / error) === */
+  --iso-red-100: #ffe3e6;
+  --iso-red-200: #ffb3bb;
+  --iso-red-300: #f0606e;
+  --iso-red-400: #e30417;
+  --iso-red-500: #bf0218;
+  --iso-red-600: #a61433;
+  --iso-red-700: #7a0e26;
+  --iso-red-800: #4d0918;
+  --iso-red-900: #26040c;
+
+  /* === Semantic — Green (success) === */
+  --iso-green-100: #e0f7e2;
+  --iso-green-200: #b3eab8;
+  --iso-green-300: #5fce69;
+  --iso-green-400: #009d0d;
+  --iso-green-500: #007a0a;
+  --iso-green-600: #166a45;
+  --iso-green-700: #1b8354;
+  --iso-green-800: #114a3a;
+  --iso-green-900: #0a2e23;
+
+  /* === Semantic — Yellow / Warning === */
+  --iso-yellow-100: #fff5d6;
+  --iso-yellow-200: #ffe69b;
+  --iso-yellow-300: #ffd35c;
+  --iso-yellow-400: #ffb700;
+  --iso-yellow-500: #dc9f05;
+  --iso-yellow-600: #b07f04;
+  --iso-yellow-700: #8a6303;
+  --iso-yellow-800: #5c4202;
+  --iso-yellow-900: #2e2101;
+
+  /* === Info (light blue accent) === */
+  --iso-info-100: #ebf1f7;
+  --iso-info-500: #459dde;
+  --iso-info-700: #0068c4;
+
+  /* === Gradients === */
+  --iso-gradient-blue:        linear-gradient(90deg, #003ca4 0%, #0068c4 50%, #459dde 100%);
+  --iso-gradient-blue-2stop:  linear-gradient(90deg, #003ca4 0%, #0068c4 100%);
+  --iso-gradient-green:       linear-gradient(90deg, #166a45 0%, #1b8354 100%);
+
+  /* === Semantic aliases — USE THESE in product code === */
+  --iso-bg:           var(--iso-white);
+  --iso-bg-subtle:    var(--iso-n-50);
+  --iso-bg-muted:     var(--iso-blue-3-100);   /* brand-tinted bg #ebf1f7 */
+  --iso-surface:      var(--iso-white);
+  --iso-surface-alt:  var(--iso-n-50);
+
+  --iso-fg:           var(--iso-n-900);
+  --iso-fg-strong:    var(--iso-black);
+  --iso-fg-muted:     var(--iso-n-700);
+  --iso-fg-subtle:    var(--iso-n-600);
+  --iso-fg-disabled:  var(--iso-n-500);
+  --iso-fg-on-brand:  var(--iso-white);
+
+  --iso-border:        var(--iso-n-200);
+  --iso-border-strong: var(--iso-n-300);
+  --iso-border-muted:  var(--iso-n-100);
+  --iso-divider:       var(--iso-n-200);
+
+  --iso-brand:         var(--iso-blue-1-600);   /* #003CA4 */
+  --iso-brand-hover:   var(--iso-blue-1-700);
+  --iso-brand-active:  var(--iso-blue-1-800);
+  --iso-brand-soft:    var(--iso-blue-3-100);
+
+  --iso-link:          var(--iso-blue-2-500);   /* #0068C4 */
+  --iso-link-hover:    var(--iso-blue-2-700);
+
+  --iso-accent:        var(--iso-blue-3-400);   /* #459DDE */
+
+  --iso-success:       var(--iso-green-400);
+  --iso-success-soft:  var(--iso-green-100);
+  --iso-warning:       var(--iso-yellow-400);
+  --iso-warning-soft:  var(--iso-yellow-100);
+  --iso-danger:        var(--iso-red-500);
+  --iso-danger-soft:   var(--iso-red-100);
+  --iso-info:          var(--iso-blue-3-400);
+  --iso-info-soft:     var(--iso-blue-3-100);
+
+  /* ===========================================================
+     3. Typography
+     Product Sans → display+body
+     Inter → UI/numerical/eyebrow
+     IBM Plex Sans Arabic → Arabic/RTL
+     =========================================================== */
+
+  --iso-font-display: "Product Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --iso-font-body:    "Product Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --iso-font-ui:      "Inter", "Product Sans", system-ui, -apple-system, sans-serif;
+  --iso-font-arabic:  "IBM Plex Sans Arabic", "Product Sans", system-ui, sans-serif;
+
+  --iso-fw-thin:    100;
+  --iso-fw-light:   300;
+  --iso-fw-regular: 400;
+  --iso-fw-medium:  500;
+  --iso-fw-bold:    700;
+  --iso-fw-black:   900;
+
+  /* Type scale (Figma "_Type scale base" tokens) */
+  --iso-fs-display-2xl: 72px;
+  --iso-fs-display-xl:  60px;
+  --iso-fs-display-lg:  48px;
+  --iso-fs-display-md:  36px;
+  --iso-fs-display-sm:  30px;
+  --iso-fs-display-xs:  24px;
+  --iso-fs-text-xl:     20px;
+  --iso-fs-text-lg:     18px;
+  --iso-fs-text-md:     16px;
+  --iso-fs-text-sm:     14px;
+  --iso-fs-text-xs:     12px;
+  --iso-fs-text-2xs:    10px;
+
+  --iso-lh-display-2xl: 90px;
+  --iso-lh-display-xl:  72px;
+  --iso-lh-display-lg:  60px;
+  --iso-lh-display-md:  44px;
+  --iso-lh-display-sm:  38px;
+  --iso-lh-display-xs:  32px;
+  --iso-lh-text-xl:     30px;
+  --iso-lh-text-lg:     28px;
+  --iso-lh-text-md:     24px;
+  --iso-lh-text-sm:     20px;
+  --iso-lh-text-xs:     18px;
+  --iso-lh-text-2xs:    14px;
+
+  --iso-tracking-display: -0.02em;
+  --iso-tracking-tight:   -0.01em;
+  --iso-tracking-normal:  0em;
+  --iso-tracking-wide:    0.02em;
+  --iso-tracking-loose:   0.62em;
+
+  /* ===========================================================
+     4. Spacing — 4-px grid
+     =========================================================== */
+  --iso-space-0:   0;
+  --iso-space-px:  1px;
+  --iso-space-0-5: 2px;
+  --iso-space-1:   4px;
+  --iso-space-1-5: 6px;
+  --iso-space-2:   8px;
+  --iso-space-3:   12px;
+  --iso-space-4:   16px;
+  --iso-space-5:   20px;
+  --iso-space-6:   24px;
+  --iso-space-7:   28px;
+  --iso-space-8:   32px;
+  --iso-space-10:  40px;
+  --iso-space-12:  48px;
+  --iso-space-14:  56px;
+  --iso-space-16:  64px;
+  --iso-space-20:  80px;
+  --iso-space-24:  96px;
+  --iso-space-32:  128px;
+
+  --iso-container-sm: 640px;
+  --iso-container-md: 960px;
+  --iso-container-lg: 1280px;
+  --iso-container-xl: 1440px;
+
+  /* ===========================================================
+     5. Radii
+     =========================================================== */
+  --iso-radius-none: 0;
+  --iso-radius-xs:   3px;
+  --iso-radius-sm:   4px;
+  --iso-radius-md:   5px;
+  --iso-radius-lg:   8px;
+  --iso-radius-xl:   12px;
+  --iso-radius-2xl:  16px;
+  --iso-radius-3xl:  22px;
+  --iso-radius-full: 9999px;
+
+  /* ===========================================================
+     6. Shadows / Elevation
+     =========================================================== */
+  --iso-shadow-xs:  0 0.5px 2px 0 rgba(0,0,0,0.05);
+  --iso-shadow-sm:  0 1px 2px 0 rgba(0,0,0,0.06), 0 1px 3px 0 rgba(0,0,0,0.05);
+  --iso-shadow-md:  0 2px 6px 0 rgba(0,0,0,0.06), 0 4px 12px 0 rgba(0,0,0,0.05);
+  --iso-shadow-lg:  0 4px 12px 0 rgba(0,0,0,0.08), 0 12px 32px -8px rgba(0,0,0,0.12);
+  --iso-shadow-xl:  0 8px 24px 0 rgba(0,0,0,0.10), 0 24px 48px -12px rgba(0,0,0,0.18);
+  --iso-shadow-modal:0 0 0 1px rgba(0,0,0,0.05), 0 24px 48px -12px rgba(0,0,0,0.25);
+  --iso-shadow-focus:        0 0 0 3px rgba(0,60,164,0.18);
+  --iso-shadow-focus-danger: 0 0 0 3px rgba(191,2,24,0.18);
+
+  /* ===========================================================
+     7. Motion
+     =========================================================== */
+  --iso-duration-fast:   120ms;
+  --iso-duration-base:   180ms;
+  --iso-duration-slow:   240ms;
+  --iso-duration-slower: 360ms;
+  --iso-ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --iso-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --iso-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ===========================================================
+     8. Z-index
+     =========================================================== */
+  --iso-z-base:     0;
+  --iso-z-raised:   10;
+  --iso-z-dropdown: 100;
+  --iso-z-sticky:   200;
+  --iso-z-overlay:  800;
+  --iso-z-modal:    900;
+  --iso-z-toast:    1000;
+}
+
+/* ============================================================
+   Semantic typography classes
+   ============================================================ */
+.iso-display-2xl, h1.iso-display { font-family: var(--iso-font-display); font-weight: var(--iso-fw-light);  font-size: var(--iso-fs-display-2xl); line-height: var(--iso-lh-display-2xl); letter-spacing: var(--iso-tracking-display); color: var(--iso-fg); }
+.iso-display-xl  { font: var(--iso-fw-light)  var(--iso-fs-display-xl)/var(--iso-lh-display-xl) var(--iso-font-display); letter-spacing: var(--iso-tracking-display); color: var(--iso-fg); }
+.iso-display-lg  { font: var(--iso-fw-light)  var(--iso-fs-display-lg)/var(--iso-lh-display-lg) var(--iso-font-display); letter-spacing: var(--iso-tracking-display); color: var(--iso-fg); }
+.iso-display-md  { font: var(--iso-fw-medium) var(--iso-fs-display-md)/var(--iso-lh-display-md) var(--iso-font-display); letter-spacing: var(--iso-tracking-display); color: var(--iso-fg); }
+.iso-display-sm  { font: var(--iso-fw-medium) var(--iso-fs-display-sm)/var(--iso-lh-display-sm) var(--iso-font-display); letter-spacing: var(--iso-tracking-tight);   color: var(--iso-fg); }
+.iso-display-xs  { font: var(--iso-fw-medium) var(--iso-fs-display-xs)/var(--iso-lh-display-xs) var(--iso-font-display); color: var(--iso-fg); }
+
+.iso-text-xl  { font: var(--iso-fw-regular) var(--iso-fs-text-xl)/var(--iso-lh-text-xl) var(--iso-font-body); color: var(--iso-fg); }
+.iso-text-lg  { font: var(--iso-fw-regular) var(--iso-fs-text-lg)/var(--iso-lh-text-lg) var(--iso-font-body); color: var(--iso-fg); }
+.iso-text-md  { font: var(--iso-fw-regular) var(--iso-fs-text-md)/var(--iso-lh-text-md) var(--iso-font-body); color: var(--iso-fg); }
+.iso-text-sm  { font: var(--iso-fw-regular) var(--iso-fs-text-sm)/var(--iso-lh-text-sm) var(--iso-font-body); color: var(--iso-fg-muted); }
+.iso-text-xs  { font: var(--iso-fw-regular) var(--iso-fs-text-xs)/var(--iso-lh-text-xs) var(--iso-font-ui);   color: var(--iso-fg-muted); letter-spacing: 0.01em; }
+.iso-text-2xs { font: var(--iso-fw-medium)  var(--iso-fs-text-2xs)/var(--iso-lh-text-2xs) var(--iso-font-ui); color: var(--iso-fg-subtle); letter-spacing: 0.04em; text-transform: uppercase; }
+
+.iso-eyebrow {
+  font-family: var(--iso-font-ui);
+  font-weight: var(--iso-fw-medium);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--iso-fg-muted);
+}
+
+.iso-link {
+  color: var(--iso-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--iso-duration-base) var(--iso-ease-out);
+}
+.iso-link:hover { color: var(--iso-link-hover); }
+
+/* ============================================================
+   Base reset (opt-in via .iso-root)
+   ============================================================ */
+.iso-root {
+  font-family: var(--iso-font-body);
+  color: var(--iso-fg);
+  background: var(--iso-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.iso-root *, .iso-root *::before, .iso-root *::after { box-sizing: border-box; }

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<title>min-crm · Shell & components</title>
+<link rel="stylesheet" href="tokens/colors_and_type.css">
+<link rel="stylesheet" href="tokens/motion.css">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body { font-family: var(--iso-font-body); color: var(--iso-fg); background: var(--iso-blue-3-50); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  *, *::before, *::after { box-sizing: border-box; }
+  button, input, select { font-family: inherit; }
+  #root { height: 100%; }
+
+  /* ---- entrance animations (travel collapses under reduced-motion) ---- */
+  @keyframes crm-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes crm-pop {
+    from { opacity: 0; transform: translateY(calc(var(--crm-travel) * 8px)) scale(calc(1 - var(--crm-travel) * 0.012)); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ---- skeleton shimmer ---- */
+  .crm-skel {
+    background: linear-gradient(90deg, var(--iso-n-100) 25%, var(--iso-n-50) 37%, var(--iso-n-100) 63%);
+    background-size: 400% 100%;
+    animation: crm-shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes crm-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .crm-skel { animation: none; background: var(--iso-n-100); }
+  }
+
+  /* ---- nav buttons (CSS hover so it never fights React inline state) ---- */
+  .crm-navbtn[data-active="false"]:hover { background-color: var(--iso-n-100) !important; color: var(--iso-fg) !important; }
+  .crm-navbtn-soft[data-active="false"]:hover { background-color: var(--iso-n-100) !important; }
+  .crm-navbtn:focus-visible { outline: none; box-shadow: var(--iso-shadow-focus); }
+
+  /* ---- table rows ---- */
+  .crm-trow:hover { background: var(--iso-blue-3-50); }
+  .crm-trow:focus-visible { box-shadow: inset 0 0 0 2px var(--iso-brand); background: var(--iso-blue-3-50); }
+
+  /* ---- button hover / press (override inline bg) ---- */
+  .crm-btn:focus-visible { outline: none; box-shadow: var(--iso-shadow-focus); }
+  .crm-btn-danger:focus-visible { box-shadow: var(--iso-shadow-focus-danger); }
+  .crm-btn-primary:hover:not(:disabled)   { background: var(--iso-brand-hover) !important; }
+  .crm-btn-primary:active:not(:disabled)  { background: var(--iso-brand-active) !important; }
+  .crm-btn-secondary:hover:not(:disabled) { background: var(--iso-brand-soft) !important; }
+  .crm-btn-ghost:hover:not(:disabled)     { background: var(--iso-n-100) !important; color: var(--iso-fg) !important; }
+  .crm-btn-neutral:hover:not(:disabled)   { background: var(--iso-n-200) !important; }
+  .crm-btn-danger:hover:not(:disabled)    { background: var(--iso-red-600) !important; }
+  .crm-btn-danger:active:not(:disabled)   { background: var(--iso-red-700) !important; }
+
+  /* native select option color fix */
+  select option { color: var(--iso-fg); }
+
+  /* saga step spinner */
+  @keyframes crm-spin { to { transform: rotate(360deg); } }
+  .crm-spin { animation: crm-spin 0.9s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { .crm-spin { animation-duration: 2.4s; } }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="app/config.jsx"></script>
+<script type="text/babel" src="app/store.jsx"></script>
+<script type="text/babel" src="app/components_core.jsx"></script>
+<script type="text/babel" src="app/components_data.jsx"></script>
+<script type="text/babel" src="app/shell.jsx"></script>
+<script type="text/babel" src="app/templates.jsx"></script>
+<script type="text/babel" src="app/dashboard.jsx"></script>
+<script type="text/babel" src="app/shared_records.jsx"></script>
+<script type="text/babel" src="app/forms.jsx"></script>
+<script type="text/babel" src="app/tenancy.jsx"></script>
+<script type="text/babel" src="app/leads.jsx"></script>
+<script type="text/babel" src="app/conversion.jsx"></script>
+<script type="text/babel" src="app/customers.jsx"></script>
+<script type="text/babel" src="app/tickets.jsx"></script>
+<script type="text/babel" src="app/audit.jsx"></script>
+<script type="text/babel" src="app/gallery.jsx"></script>
+<script type="text/babel" src="app/login.jsx"></script>
+<script type="text/babel" src="app/app.jsx"></script>
+</body>
+</html>

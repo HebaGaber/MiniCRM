@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>min-crm · Foundation</title>
+<link rel="stylesheet" href="tokens/colors_and_type.css">
+<link rel="stylesheet" href="tokens/motion.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: var(--iso-font-body);
+    color: var(--iso-fg);
+    background: var(--iso-blue-3-50);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 var(--iso-space-8); }
+
+  /* ---------- mono / eyebrow helpers ---------- */
+  .eye {
+    font: 500 10px/1 var(--iso-font-ui);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--iso-fg-subtle);
+  }
+  .mono { font-family: "Inter", ui-monospace, SF Mono, Menlo, monospace; font-variant-numeric: tabular-nums; }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* ---------- top bar ---------- */
+  header.bar {
+    position: sticky; top: 0; z-index: var(--iso-z-sticky);
+    background: rgba(255,255,255,0.86);
+    backdrop-filter: saturate(140%) blur(8px);
+    border-bottom: 1px solid var(--iso-border);
+  }
+  .bar-in {
+    max-width: 1080px; margin: 0 auto; padding: 0 var(--iso-space-8);
+    height: 64px; display: flex; align-items: center; gap: var(--iso-space-4);
+  }
+  .mark {
+    display: inline-flex; align-items: baseline; gap: 2px;
+    font: 500 18px/1 var(--iso-font-display); letter-spacing: -0.02em; color: var(--iso-fg-strong);
+  }
+  .mark b { color: var(--iso-brand); font-weight: 500; }
+  .mark .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--iso-accent); align-self: center; margin: 0 1px; }
+  .bar .tag-doc {
+    font: 500 10px/1 var(--iso-font-ui); letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--iso-fg-muted); border: 1px solid var(--iso-border); border-radius: var(--iso-radius-xs);
+    padding: 4px 7px;
+  }
+  .bar .spacer { flex: 1; }
+  /* scope line — principle 3 made literal in the doc shell */
+  .scope {
+    display: inline-flex; align-items: center; gap: var(--iso-space-2);
+    height: 32px; padding: 0 12px; border: 1px solid var(--iso-border);
+    border-radius: var(--iso-radius-sm); background: var(--iso-bg);
+    font: 400 12px/1 var(--iso-font-ui); color: var(--iso-fg-muted);
+  }
+  .scope b { color: var(--iso-fg); font-weight: 500; }
+  .scope i[data-lucide] { color: var(--iso-accent); }
+  .scope .sep { color: var(--iso-border-strong); }
+
+  /* ---------- hero ---------- */
+  .hero { padding: var(--iso-space-16) 0 var(--iso-space-10); }
+  .hero h1 {
+    margin: var(--iso-space-3) 0 0;
+    font: 300 48px/52px var(--iso-font-display); letter-spacing: -0.02em; color: var(--iso-fg-strong);
+  }
+  .hero h1 em { font-style: normal; color: var(--iso-brand); }
+  .hero p {
+    margin: var(--iso-space-5) 0 0; max-width: 60ch;
+    font: 400 18px/28px var(--iso-font-body); color: var(--iso-fg-muted); text-wrap: pretty;
+  }
+  .hero .laws {
+    margin-top: var(--iso-space-6); display: flex; flex-wrap: wrap; gap: var(--iso-space-2);
+  }
+  .hero .laws span {
+    font: 500 11px/1 var(--iso-font-ui); color: var(--iso-fg-muted);
+    background: var(--iso-bg); border: 1px solid var(--iso-border);
+    border-radius: var(--iso-radius-full); padding: 6px 11px;
+  }
+
+  /* ---------- section scaffold ---------- */
+  section.sec { padding: var(--iso-space-10) 0; border-top: 1px solid var(--iso-border); }
+  .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--iso-space-6); margin-bottom: var(--iso-space-8); }
+  .sec-head h2 { margin: 6px 0 0; font: 500 30px/36px var(--iso-font-display); letter-spacing: -0.02em; color: var(--iso-fg-strong); }
+  .sec-head p { margin: 0; max-width: 42ch; font: 400 14px/22px var(--iso-font-body); color: var(--iso-fg-muted); text-align: right; }
+
+  /* ---------- cards ---------- */
+  .card {
+    background: var(--iso-bg); border: 1px solid var(--iso-border);
+    border-radius: var(--iso-radius-lg); box-shadow: var(--iso-shadow-sm);
+  }
+  .card-pad { padding: var(--iso-space-6); }
+
+  /* ---------- principles ---------- */
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: var(--iso-space-4); }
+  .principle { display: flex; gap: var(--iso-space-5); padding: var(--iso-space-6); }
+  .principle .no {
+    flex: none; width: 40px; height: 40px; border-radius: var(--iso-radius-sm);
+    background: var(--iso-brand-soft); color: var(--iso-brand);
+    display: flex; align-items: center; justify-content: center;
+    font: 500 14px/1 var(--iso-font-ui); letter-spacing: 0.02em;
+  }
+  .principle h3 { margin: 4px 0 6px; font: 500 18px/22px var(--iso-font-display); letter-spacing: -0.01em; color: var(--iso-fg-strong); }
+  .principle p { margin: 0; font: 400 14px/21px var(--iso-font-body); color: var(--iso-fg-muted); text-wrap: pretty; }
+  .principle:first-child .no { background: var(--iso-brand); color: var(--iso-fg-on-brand); }
+
+  /* ---------- motion scale ---------- */
+  .scale { display: flex; flex-direction: column; }
+  .scale-row {
+    display: grid; grid-template-columns: 132px 1fr 88px; align-items: center; gap: var(--iso-space-5);
+    padding: var(--iso-space-5) 0; border-bottom: 1px solid var(--iso-border-muted);
+  }
+  .scale-row:last-child { border-bottom: 0; }
+  .scale-name { font: 500 15px/1.2 var(--iso-font-display); color: var(--iso-fg-strong); }
+  .scale-name small { display: block; margin-top: 3px; font: 400 12px/16px var(--iso-font-body); color: var(--iso-fg-subtle); }
+  .track {
+    position: relative; height: 34px; border-radius: var(--iso-radius-sm);
+    background: var(--iso-blue-3-50); border: 1px solid var(--iso-border-muted);
+    overflow: hidden;
+  }
+  .track .puck {
+    position: absolute; top: 50%; left: 5px; width: 22px; height: 22px; margin-top: -11px;
+    border-radius: var(--iso-radius-xs); background: var(--iso-brand);
+    transform: translateX(0);
+  }
+  .track.run .puck {
+    transform: translateX(calc(var(--crm-travel) * (100% + 5px) * 0));
+  }
+  .scale-ms { text-align: right; }
+  .scale-ms b { font: 500 18px/1 var(--iso-font-ui); color: var(--iso-fg-strong); }
+  .scale-ms small { display:block; margin-top: 3px; font: 400 10px/1 var(--iso-font-ui); color: var(--iso-fg-subtle); letter-spacing: 0.04em; text-transform: uppercase; }
+
+  /* easing trio */
+  .eases { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--iso-space-4); margin-top: var(--iso-space-6); }
+  .ease { padding: var(--iso-space-5); border: 1px solid var(--iso-border); border-radius: var(--iso-radius-md); background: var(--iso-blue-3-50); }
+  .ease h4 { margin: 0 0 4px; font: 500 13px/1 var(--iso-font-display); color: var(--iso-fg-strong); }
+  .ease p { margin: 0 0 12px; font: 400 12px/17px var(--iso-font-body); color: var(--iso-fg-muted); }
+  .ease svg { display: block; width: 100%; height: 56px; }
+  .ease .cb { margin-top: 8px; font: 400 10px/1 var(--iso-font-ui); color: var(--iso-fg-subtle); }
+
+  /* play controls */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    height: 36px; padding: 0 16px; border-radius: var(--iso-radius-sm);
+    font: 500 13px/1 var(--iso-font-body); cursor: pointer;
+    border: 1px solid transparent;
+    transition: background var(--crm-fast) var(--crm-ease-standard), color var(--crm-fast) var(--crm-ease-standard), box-shadow var(--crm-fast) var(--crm-ease-standard);
+  }
+  .btn:focus-visible { outline: none; box-shadow: var(--iso-shadow-focus); }
+  .btn-primary { background: var(--iso-brand); color: var(--iso-fg-on-brand); }
+  .btn-primary:hover { background: var(--iso-brand-hover); }
+  .btn-primary:active { background: var(--iso-brand-active); }
+  .btn-secondary { background: var(--iso-bg); color: var(--iso-brand); border-color: var(--iso-brand); }
+  .btn-secondary:hover { background: var(--iso-brand-soft); }
+  .btn-ghost { background: transparent; color: var(--iso-fg-muted); }
+  .btn-ghost:hover { background: var(--iso-n-100); color: var(--iso-fg); }
+  .btn[disabled] { background: var(--iso-blue-1-200); color: var(--iso-fg-on-brand); cursor: default; pointer-events: none; }
+  .btn-sm { height: 28px; padding: 0 11px; font-size: 12px; }
+
+  /* ---------- micro-demos ---------- */
+  .demos { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--iso-space-4); margin-top: var(--iso-space-8); }
+  .demo { display: flex; flex-direction: column; }
+  .demo .demo-head { padding: var(--iso-space-5) var(--iso-space-5) 0; }
+  .demo .demo-head .meta { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+  .demo .demo-head .pillms {
+    font: 500 10px/1 var(--iso-font-ui); letter-spacing: 0.04em;
+    color: var(--iso-brand); background: var(--iso-brand-soft);
+    border-radius: var(--iso-radius-full); padding: 4px 8px;
+  }
+  .demo h4 { margin: 0; font: 500 16px/20px var(--iso-font-display); letter-spacing: -0.01em; color: var(--iso-fg-strong); }
+  .demo .desc { margin: 6px 0 0; font: 400 12.5px/18px var(--iso-font-body); color: var(--iso-fg-muted); text-wrap: pretty; }
+  .stage {
+    margin: var(--iso-space-5); flex: 1; min-height: 132px;
+    border: 1px solid var(--iso-border-muted); border-radius: var(--iso-radius-md);
+    background: var(--iso-blue-3-50);
+    display: flex; align-items: center; justify-content: center;
+    padding: var(--iso-space-5); overflow: hidden;
+  }
+  .demo .ctrls { padding: 0 var(--iso-space-5) var(--iso-space-5); display: flex; gap: var(--iso-space-2); align-items: center; }
+  .demo .ctrls .note { margin-left: auto; font: 400 11px/1.3 var(--iso-font-ui); color: var(--iso-fg-subtle); }
+
+  /* demo 1 — optimistic pin */
+  .pinrow {
+    display: flex; align-items: center; gap: var(--iso-space-3);
+    background: var(--iso-bg); border: 1px solid var(--iso-border);
+    border-radius: var(--iso-radius-sm); padding: 10px 12px; min-width: 196px;
+  }
+  .pinrow .av { width: 28px; height: 28px; border-radius: var(--iso-radius-full); background: var(--iso-blue-3-400); color:#fff; display:flex; align-items:center; justify-content:center; font: 500 11px/1 var(--iso-font-ui); flex:none; }
+  .pinrow .who { font: 500 13px/1.2 var(--iso-font-body); color: var(--iso-fg); }
+  .pinrow .who small { display:block; font: 400 11px/1.3 var(--iso-font-ui); color: var(--iso-fg-subtle); }
+  .pinbtn {
+    margin-left: auto; flex: none; width: 32px; height: 32px; border-radius: var(--iso-radius-sm);
+    border: 1px solid var(--iso-border); background: var(--iso-bg); cursor: pointer; color: var(--iso-fg-subtle);
+    display: flex; align-items: center; justify-content: center;
+    /* the fill is INSTANT — 0ms — no transition on color/bg */
+  }
+  .pinbtn.on { background: var(--iso-warning-soft); border-color: var(--iso-yellow-300); color: var(--iso-yellow-600); }
+  .pinbtn i[data-lucide] { width: 16px; height: 16px; }
+  .pinbtn.on i[data-lucide] { fill: var(--iso-yellow-400); }
+
+  /* demo 2 — rollback snap-back */
+  .ownerrow {
+    display: flex; align-items: center; gap: var(--iso-space-3);
+    background: var(--iso-bg); border: 1px solid var(--iso-border);
+    border-radius: var(--iso-radius-sm); padding: 10px 12px; min-width: 210px;
+  }
+  .ownerrow .lbl { font: 400 11px/1 var(--iso-font-ui); color: var(--iso-fg-subtle); text-transform: uppercase; letter-spacing: 0.06em; }
+  .owner-chip {
+    display: inline-flex; align-items: center; gap: 7px; margin-left: auto;
+    padding: 4px 10px 4px 5px; border-radius: var(--iso-radius-full);
+    background: var(--iso-n-100); border: 1px solid transparent;
+    font: 500 12px/1 var(--iso-font-body); color: var(--iso-fg);
+  }
+  .owner-chip .av { width: 20px; height: 20px; border-radius: 50%; background: var(--iso-n-500); color:#fff; display:flex;align-items:center;justify-content:center; font:500 9px/1 var(--iso-font-ui); }
+  .owner-chip.pending { border-color: var(--iso-blue-1-200); border-style: dashed; background: var(--iso-brand-soft); color: var(--iso-brand); }
+  .owner-chip.pending .av { background: var(--iso-brand); }
+  .owner-chip.rollback { animation: crm-snapback var(--crm-slow) var(--crm-ease-standard); }
+  @keyframes crm-snapback {
+    0%   { transform: translateX(calc(var(--crm-travel) * 30px)); background: var(--iso-danger-soft); border-color: var(--iso-red-300); color: var(--iso-red-600); }
+    100% { transform: translateX(0); background: var(--iso-n-100); border-color: transparent; color: var(--iso-fg); }
+  }
+
+  /* demo 3 — pill tone cross-fade */
+  .xpill {
+    position: relative; display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 13px 6px 11px; border-radius: var(--iso-radius-full);
+    border: 1px solid var(--xp-border); background: var(--xp-bg); color: var(--xp-fg);
+    font: 500 12px/1 var(--iso-font-ui); letter-spacing: 0.02em;
+    transition: background var(--crm-fast) var(--crm-ease-standard),
+                color var(--crm-fast) var(--crm-ease-standard),
+                border-color var(--crm-fast) var(--crm-ease-standard);
+  }
+  .xpill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--xp-dot);
+    transition: background var(--crm-fast) var(--crm-ease-standard); }
+
+  /* ---------- toast ---------- */
+  #toastwrap {
+    position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+    display: flex; flex-direction: column; gap: 8px; align-items: center;
+    z-index: var(--iso-z-toast); pointer-events: none;
+  }
+  .toast {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--iso-n-900); color: #fff;
+    border-radius: var(--iso-radius-md); padding: 11px 14px;
+    box-shadow: var(--iso-shadow-lg);
+    font: 400 13px/1.3 var(--iso-font-body);
+    opacity: 0; transform: translateY(calc(var(--crm-travel) * 8px));
+    transition: opacity var(--crm-fast) var(--crm-ease-decelerate),
+                transform var(--crm-fast) var(--crm-ease-decelerate);
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast i[data-lucide] { width: 16px; height: 16px; color: var(--iso-red-300); flex: none; }
+  .toast b { font-weight: 500; }
+  .toast small { color: var(--iso-n-400); font-size: 12px; }
+
+  /* ---------- status pill gallery ---------- */
+  .pillgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--iso-space-4); }
+  .pillcell { padding: var(--iso-space-5); display: flex; flex-direction: column; gap: var(--iso-space-4); align-items: flex-start; }
+  .pillcell .tone-eye { font: 500 10px/1 var(--iso-font-ui); letter-spacing: 0.06em; text-transform: uppercase; color: var(--iso-fg-subtle); }
+  .spill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px; border-radius: var(--iso-radius-xs);
+    font: 500 10px/14px var(--iso-font-ui); letter-spacing: 0.06em; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .spill .d { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .spill .ic { width: 11px; height: 11px; }
+  .tone-map { width: 100%; margin-top: var(--iso-space-2); }
+  .tone-map .mrow { display: flex; align-items: center; gap: 6px; font: 400 11px/1.4 var(--iso-font-ui); color: var(--iso-fg-subtle); }
+  .tone-map .mrow .k { color: var(--iso-fg-muted); }
+
+  table.map { width: 100%; border-collapse: collapse; margin-top: var(--iso-space-6); }
+  table.map th, table.map td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--iso-border-muted); font: 400 13px/1.4 var(--iso-font-body); color: var(--iso-fg); }
+  table.map th { font: 500 10px/1 var(--iso-font-ui); letter-spacing: 0.06em; text-transform: uppercase; color: var(--iso-fg-subtle); }
+  table.map td.code { font-family: "Inter", ui-monospace, Menlo, monospace; font-size: 12px; color: var(--iso-fg-muted); }
+  table.map tr:last-child td { border-bottom: 0; }
+
+  .callout {
+    display: flex; gap: var(--iso-space-3); align-items: flex-start;
+    background: var(--iso-brand-soft); border: 1px solid var(--iso-blue-3-200);
+    border-radius: var(--iso-radius-md); padding: 14px 16px; margin-top: var(--iso-space-6);
+  }
+  .callout i[data-lucide] { color: var(--iso-brand); width: 18px; height: 18px; flex: none; margin-top: 1px; }
+  .callout p { margin: 0; font: 400 13px/20px var(--iso-font-body); color: var(--iso-fg); }
+  .callout b { font-weight: 500; }
+
+  footer { padding: var(--iso-space-12) 0 var(--iso-space-16); text-align: center; }
+  footer p { margin: 0; font: 400 12px/1.5 var(--iso-font-ui); color: var(--iso-fg-subtle); }
+
+  @media (max-width: 880px) {
+    .principles, .demos, .eases { grid-template-columns: 1fr; }
+    .pillgrid { grid-template-columns: repeat(2, 1fr); }
+    .sec-head { flex-direction: column; align-items: flex-start; }
+    .sec-head p { text-align: left; }
+  }
+</style>
+</head>
+<body class="iso-root">
+
+<header class="bar">
+  <div class="bar-in">
+    <span class="mark">min<span class="dot"></span><b>crm</b></span>
+    <span class="tag-doc">Foundation</span>
+    <span class="spacer"></span>
+    <span class="scope" title="Principle 3 — the active scope is shown in the shell at all times">
+      <i data-lucide="building-2"></i>
+      <span><b>Northwind Trading</b></span>
+      <span class="sep">/</span>
+      <span>EU subsidiary</span>
+    </span>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <span class="eye">min-crm · system laws</span>
+    <h1>The laws everything later <em>obeys.</em></h1>
+    <p>An internal, multi-tenant CRM for sales, support and admin agents. Clarity over chrome; comfortable-to-dense tables; behavioural restraint. Every colour, type, spacing, radius and elevation comes from the iSolution Design System — referenced by token, never hardcoded. The one layer we author on top is <strong>motion</strong>.</p>
+    <div class="laws">
+      <span>Clarity over chrome</span>
+      <span>Audit-as-feature</span>
+      <span>Scope always visible</span>
+      <span>Deny-wins, felt gracefully</span>
+      <span>Optimistic but honest</span>
+    </div>
+  </section>
+
+  <!-- ============ PRINCIPLES ============ -->
+  <section class="sec" id="principles">
+    <div class="sec-head">
+      <div>
+        <span class="eye">01 · Pinned</span>
+        <h2>Design principles</h2>
+      </div>
+      <p>Five non-negotiable laws. If a screen breaks one, the screen is wrong — not the law.</p>
+    </div>
+    <div class="principles">
+      <div class="card principle">
+        <div class="no">01</div>
+        <div>
+          <h3>Clarity over chrome</h3>
+          <p>Motion, elevation and ornament must make a state change legible — or be removed. Nothing decorates; everything explains.</p>
+        </div>
+      </div>
+      <div class="card principle">
+        <div class="no">02</div>
+        <div>
+          <h3>Audit-as-feature</h3>
+          <p>The per-record Activity timeline is a designed product surface, not a raw audit log. Who did what, when, and what changed — readable at a glance.</p>
+        </div>
+      </div>
+      <div class="card principle">
+        <div class="no">03</div>
+        <div>
+          <h3>Scope always visible</h3>
+          <p>The active tenant and subsidiary are shown in the shell at all times. An agent never has to guess which book of business they are acting on.</p>
+        </div>
+      </div>
+      <div class="card principle">
+        <div class="no">04</div>
+        <div>
+          <h3>Deny-wins, felt gracefully</h3>
+          <p>Every block or denial is a calm state that offers the next legal action. A wall, never a dead end — and never a scolding.</p>
+        </div>
+      </div>
+      <div class="card principle">
+        <div class="no">05</div>
+        <div>
+          <h3>Optimistic but honest</h3>
+          <p>Actions apply instantly. When they fail, they roll back with the most visible motion in the system and a plain toast. Speed is never paid for in trust.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MOTION ============ -->
+  <section class="sec" id="motion">
+    <div class="sec-head">
+      <div>
+        <span class="eye">02 · The authored layer</span>
+        <h2>Motion tokens</h2>
+      </div>
+      <p>Four durations, three easings. Motion encodes meaning here — it is the only thing we build on top of the design system.</p>
+    </div>
+
+    <div class="card card-pad">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 8px;">
+        <span class="eye">Duration scale</span>
+        <button class="btn btn-secondary btn-sm" id="playAll"><i data-lucide="play" style="width:13px;height:13px"></i> Play scale</button>
+      </div>
+      <div class="scale" id="scale">
+        <div class="scale-row" data-dur="--crm-instant">
+          <div class="scale-name">instant<small>optimistic apply — already done</small></div>
+          <div class="track"><div class="puck"></div></div>
+          <div class="scale-ms"><b class="tnum">0</b><small>ms</small></div>
+        </div>
+        <div class="scale-row" data-dur="--crm-fast">
+          <div class="scale-name">fast<small>hover · focus · pill tone · toast enter</small></div>
+          <div class="track"><div class="puck"></div></div>
+          <div class="scale-ms"><b class="tnum">120</b><small>ms</small></div>
+        </div>
+        <div class="scale-row" data-dur="--crm-base">
+          <div class="scale-name">base<small>skeleton→ready · dialog · route · saga step</small></div>
+          <div class="track"><div class="puck"></div></div>
+          <div class="scale-ms"><b class="tnum">200</b><small>ms</small></div>
+        </div>
+        <div class="scale-row" data-dur="--crm-slow">
+          <div class="scale-name">slow<small>rollback snap-back — slowest, on purpose</small></div>
+          <div class="track"><div class="puck"></div></div>
+          <div class="scale-ms"><b class="tnum">320</b><small>ms</small></div>
+        </div>
+      </div>
+
+      <div class="eases">
+        <div class="ease">
+          <h4>standard</h4>
+          <p>Moves — a thing already on screen changing position or size.</p>
+          <svg viewBox="0 0 100 56" preserveAspectRatio="none"><path d="M2,54 C42,54 58,2 98,2" fill="none" stroke="var(--iso-brand)" stroke-width="2" stroke-linecap="round"/></svg>
+          <div class="cb mono">cubic-bezier(.4, 0, .2, 1)</div>
+        </div>
+        <div class="ease">
+          <h4>decelerate</h4>
+          <p>Enters — arriving content eases gently to rest.</p>
+          <svg viewBox="0 0 100 56" preserveAspectRatio="none"><path d="M2,54 C24,8 40,2 98,2" fill="none" stroke="var(--iso-brand)" stroke-width="2" stroke-linecap="round"/></svg>
+          <div class="cb mono">cubic-bezier(.22, 1, .36, 1)</div>
+        </div>
+        <div class="ease">
+          <h4>accelerate</h4>
+          <p>Exits — leaving content gathers speed and is gone.</p>
+          <svg viewBox="0 0 100 56" preserveAspectRatio="none"><path d="M2,54 C58,54 76,48 98,2" fill="none" stroke="var(--iso-brand)" stroke-width="2" stroke-linecap="round"/></svg>
+          <div class="cb mono">cubic-bezier(.4, 0, 1, 1)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- micro-demos -->
+    <div class="demos">
+      <!-- 1: optimistic apply -->
+      <div class="card demo">
+        <div class="demo-head">
+          <div class="meta"><span class="pillms">instant · 0 ms</span></div>
+          <h4>Optimistic apply</h4>
+          <p class="desc">The mutation commits to the UI before the server replies. No spinner, no delay — the fill simply is.</p>
+        </div>
+        <div class="stage">
+          <div class="pinrow">
+            <span class="av">AC</span>
+            <span class="who">Acme Corp<small>Enterprise · open</small></span>
+            <button class="pinbtn" id="pinBtn" aria-pressed="false" aria-label="Pin record">
+              <i data-lucide="star"></i>
+            </button>
+          </div>
+        </div>
+        <div class="ctrls">
+          <button class="btn btn-secondary btn-sm" id="pinToggle">Toggle pin</button>
+          <span class="note" id="pinNote">Not pinned</span>
+        </div>
+      </div>
+
+      <!-- 2: rollback snap-back -->
+      <div class="card demo">
+        <div class="demo-head">
+          <div class="meta"><span class="pillms">slow · 320 ms</span></div>
+          <h4>Rollback snap-back</h4>
+          <p class="desc">Applies instantly, then the server rejects. The reversal is the slowest motion in the system — so it can’t be missed — plus a plain toast.</p>
+        </div>
+        <div class="stage">
+          <div class="ownerrow">
+            <span class="lbl">Owner</span>
+            <span class="owner-chip" id="ownerChip"><span class="av" id="ownerAv">—</span><span id="ownerName">Unassigned</span></span>
+          </div>
+        </div>
+        <div class="ctrls">
+          <button class="btn btn-primary btn-sm" id="assignBtn">Assign to me</button>
+          <span class="note" id="assignNote">Idle</span>
+        </div>
+      </div>
+
+      <!-- 3: pill tone cross-fade -->
+      <div class="card demo">
+        <div class="demo-head">
+          <div class="meta"><span class="pillms">fast · 120 ms</span></div>
+          <h4>Pill tone cross-fade</h4>
+          <p class="desc">A status changes tone with a 120 ms cross-fade. Colour is never the only signal — the label changes with it.</p>
+        </div>
+        <div class="stage">
+          <span class="xpill" id="xpill"><span class="dot"></span><span id="xpillLabel">New</span></span>
+        </div>
+        <div class="ctrls">
+          <button class="btn btn-secondary btn-sm" id="xpillNext">Advance status</button>
+          <span class="note" id="xpillNote">neutral</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <i data-lucide="accessibility"></i>
+      <p><b>Reduced motion.</b> Under <span class="mono">prefers-reduced-motion</span>, travel and snap-back collapse to zero and longer timings clamp to <em>fast</em> — but every state change and every piece of feedback still fires. Try it: the demos above keep working, they just stop moving.</p>
+    </div>
+  </section>
+
+  <!-- ============ STATUS PILLS ============ -->
+  <section class="sec" id="status">
+    <div class="sec-head">
+      <div>
+        <span class="eye">03 · Semantic tones</span>
+        <h2>StatusPill gallery</h2>
+      </div>
+      <p>Five tones, each mapped to a design-system tone token. A pill’s tone comes only from this map — and always carries a text label.</p>
+    </div>
+
+    <div class="card">
+      <div class="pillgrid" id="pillgrid"><!-- filled by JS --></div>
+    </div>
+
+    <table class="map">
+      <thead><tr><th>Tone</th><th>Meaning</th><th>Fill</th><th>Text · border · dot</th></tr></thead>
+      <tbody>
+        <tr><td>neutral</td><td>No state / default</td><td class="code">--iso-n-100</td><td class="code">--iso-fg-muted · --iso-n-300 · --iso-n-600</td></tr>
+        <tr><td>info</td><td>In progress, informational</td><td class="code">--iso-info-soft</td><td class="code">--iso-brand · --iso-blue-3-300 · --iso-accent</td></tr>
+        <tr><td>success</td><td>Done, healthy, won</td><td class="code">--iso-success-soft</td><td class="code">--iso-green-800 · --iso-green-300 · --iso-success</td></tr>
+        <tr><td>warning</td><td>Needs attention, at risk</td><td class="code">--iso-warning-soft</td><td class="code">--iso-yellow-800 · --iso-yellow-300 · --iso-warning</td></tr>
+        <tr><td>danger</td><td>Blocked, failed, lost</td><td class="code">--iso-danger-soft</td><td class="code">--iso-red-700 · --iso-red-300 · --iso-danger</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <i data-lucide="contrast"></i>
+      <p><b>Status is never carried by colour alone.</b> Every pill pairs its tone with a text label and a tone-matched dot, so meaning survives colour-blindness, greyscale and low contrast. This is an accessibility floor, not a style choice.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>min-crm foundation · built on the iSolution Design System · motion authored on top</p>
+  </footer>
+</div>
+
+<div id="toastwrap"></div>
+
+<script>
+(function () {
+  const lucideInit = () => { if (window.lucide) window.lucide.createIcons(); };
+  lucideInit();
+
+  const css = getComputedStyle(document.documentElement);
+  const dur = (name) => parseFloat(css.getPropertyValue(name)) || 0;
+
+  /* ---------- motion duration scale ---------- */
+  function playRow(row) {
+    const track = row.querySelector('.track');
+    const puck = row.querySelector('.puck');
+    const ms = dur(row.getAttribute('data-dur'));
+    // reset
+    puck.style.transition = 'none';
+    puck.style.transform = 'translateX(0)';
+    // force reflow
+    void puck.offsetWidth;
+    const travel = parseFloat(css.getPropertyValue('--crm-travel'));
+    const dist = (track.clientWidth - puck.offsetWidth - 10) * travel;
+    puck.style.transition = `transform ${ms}ms var(--crm-ease-standard)`;
+    puck.style.transform = `translateX(${dist}px)`;
+    // settle back after a beat
+    clearTimeout(puck._t);
+    puck._t = setTimeout(() => {
+      puck.style.transition = `transform 240ms var(--crm-ease-decelerate)`;
+      puck.style.transform = 'translateX(0)';
+    }, Math.max(ms, 90) + 520);
+  }
+  document.querySelectorAll('#scale .scale-row').forEach(row => {
+    row.style.cursor = 'pointer';
+    row.title = 'Play';
+    row.addEventListener('click', () => playRow(row));
+  });
+  document.getElementById('playAll').addEventListener('click', () => {
+    document.querySelectorAll('#scale .scale-row').forEach((row, i) => {
+      setTimeout(() => playRow(row), i * 120);
+    });
+  });
+
+  /* ---------- toast ---------- */
+  const toastwrap = document.getElementById('toastwrap');
+  function toast(title, sub) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `<i data-lucide="rotate-ccw"></i><span><b>${title}</b>${sub ? ' &nbsp;<small>' + sub + '</small>' : ''}</span>`;
+    toastwrap.appendChild(t);
+    lucideInit();
+    requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+    setTimeout(() => {
+      t.classList.remove('show');
+      setTimeout(() => t.remove(), 240);
+    }, 2600);
+  }
+
+  /* ---------- demo 1: optimistic pin (instant) ---------- */
+  const pinBtn = document.getElementById('pinBtn');
+  const pinNote = document.getElementById('pinNote');
+  function setPin(on) {
+    pinBtn.classList.toggle('on', on);
+    pinBtn.setAttribute('aria-pressed', String(on));
+    pinNote.textContent = on ? 'Pinned · applied at 0 ms' : 'Not pinned';
+    lucideInit();
+  }
+  const togglePin = () => setPin(!pinBtn.classList.contains('on'));
+  pinBtn.addEventListener('click', togglePin);
+  document.getElementById('pinToggle').addEventListener('click', togglePin);
+
+  /* ---------- demo 2: rollback snap-back (slow) ---------- */
+  const ownerChip = document.getElementById('ownerChip');
+  const ownerName = document.getElementById('ownerName');
+  const ownerAv = document.getElementById('ownerAv');
+  const assignBtn = document.getElementById('assignBtn');
+  const assignNote = document.getElementById('assignNote');
+  let assignBusy = false;
+  function setOwner(name, initials) { ownerName.textContent = name; ownerAv.textContent = initials; }
+  assignBtn.addEventListener('click', () => {
+    if (assignBusy) return;
+    assignBusy = true;
+    assignBtn.disabled = true;
+    // optimistic apply — INSTANT
+    setOwner('You', 'YU');
+    ownerChip.classList.add('pending');
+    assignNote.textContent = 'Applied optimistically…';
+    // server rejects after a beat
+    setTimeout(() => {
+      ownerChip.classList.remove('pending');
+      // rollback snap-back — SLOW (the most visible motion)
+      setOwner('Unassigned', '—');
+      ownerChip.classList.remove('rollback');
+      void ownerChip.offsetWidth;
+      ownerChip.classList.add('rollback');
+      assignNote.textContent = 'Rejected — rolled back';
+      toast('Couldn’t assign — rolled back.', 'Record changed, refresh');
+      const back = dur('--crm-slow');
+      setTimeout(() => {
+        ownerChip.classList.remove('rollback');
+        assignBtn.disabled = false;
+        assignBusy = false;
+        assignNote.textContent = 'Idle';
+      }, back + 60);
+    }, 760);
+  });
+
+  /* ---------- demo 3: pill tone cross-fade (fast) ---------- */
+  const tones = [
+    { tone: 'neutral', label: 'New',         bg: 'var(--iso-n-100)',        fg: 'var(--iso-fg-muted)', border: 'var(--iso-n-300)',        dot: 'var(--iso-n-600)' },
+    { tone: 'info',    label: 'In progress', bg: 'var(--iso-info-soft)',    fg: 'var(--iso-brand)',    border: 'var(--iso-blue-3-300)',   dot: 'var(--iso-accent)' },
+    { tone: 'warning', label: 'At risk',     bg: 'var(--iso-warning-soft)', fg: 'var(--iso-yellow-800)', border: 'var(--iso-yellow-300)', dot: 'var(--iso-warning)' },
+    { tone: 'success', label: 'Won',         bg: 'var(--iso-success-soft)', fg: 'var(--iso-green-800)', border: 'var(--iso-green-300)',   dot: 'var(--iso-success)' },
+    { tone: 'danger',  label: 'Lost',        bg: 'var(--iso-danger-soft)',  fg: 'var(--iso-red-700)',  border: 'var(--iso-red-300)',      dot: 'var(--iso-danger)' },
+  ];
+  const xpill = document.getElementById('xpill');
+  const xpillLabel = document.getElementById('xpillLabel');
+  const xpillNote = document.getElementById('xpillNote');
+  let xi = 0;
+  function applyTone(t) {
+    xpill.style.setProperty('--xp-bg', t.bg);
+    xpill.style.setProperty('--xp-fg', t.fg);
+    xpill.style.setProperty('--xp-border', t.border);
+    xpill.style.setProperty('--xp-dot', t.dot);
+    xpillLabel.textContent = t.label;
+    xpillNote.textContent = t.tone;
+  }
+  applyTone(tones[0]);
+  document.getElementById('xpillNext').addEventListener('click', () => {
+    xi = (xi + 1) % tones.length;
+    applyTone(tones[xi]);
+  });
+
+  /* ---------- status pill gallery ---------- */
+  const gallery = [
+    { tone: 'neutral', label: 'Draft',     icon: 'circle-dashed', bg: 'var(--iso-n-100)',        fg: 'var(--iso-fg-muted)',  border: 'var(--iso-n-300)',      dot: 'var(--iso-n-600)' },
+    { tone: 'info',    label: 'Open',      icon: 'loader',        bg: 'var(--iso-info-soft)',    fg: 'var(--iso-brand)',     border: 'var(--iso-blue-3-300)', dot: 'var(--iso-accent)' },
+    { tone: 'success', label: 'Won',       icon: 'check',         bg: 'var(--iso-success-soft)', fg: 'var(--iso-green-800)', border: 'var(--iso-green-300)',  dot: 'var(--iso-success)' },
+    { tone: 'warning', label: 'At risk',   icon: 'triangle-alert',bg: 'var(--iso-warning-soft)', fg: 'var(--iso-yellow-800)',border: 'var(--iso-yellow-300)', dot: 'var(--iso-warning)' },
+    { tone: 'danger',  label: 'Blocked',   icon: 'ban',           bg: 'var(--iso-danger-soft)',  fg: 'var(--iso-red-700)',   border: 'var(--iso-red-300)',    dot: 'var(--iso-danger)' },
+  ];
+  const pg = document.getElementById('pillgrid');
+  gallery.forEach(g => {
+    const cell = document.createElement('div');
+    cell.className = 'pillcell';
+    cell.innerHTML = `
+      <span class="tone-eye">${g.tone}</span>
+      <span class="spill" style="background:${g.bg};color:${g.fg};border:1px solid ${g.border}">
+        <span class="d" style="background:${g.dot}"></span>${g.label}
+      </span>
+      <span class="spill" style="background:${g.bg};color:${g.fg};border:1px solid ${g.border}">
+        <i class="ic" data-lucide="${g.icon}"></i>${g.label}
+      </span>`;
+    pg.appendChild(cell);
+  });
+  lucideInit();
+})();
+</script>
+</body>
+</html>
