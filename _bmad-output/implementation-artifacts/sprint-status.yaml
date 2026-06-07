@@ -1,0 +1,114 @@
+# generated: 2026-06-07
+# last_updated: 2026-06-07
+# project: MiniCRM
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+#
+# PROJECT NOTES:
+# ==============
+# - Epics 0-5 are the 2-week PILOT cut (production frontend on the localStorage adapter).
+# - Epic 6 (Server-Side Trust Boundary) is DESIGN-ONLY / NOT in the pilot cut (ADR-005);
+#   its stories are tracked here for completeness but are gated by PRD Open Questions 1/2/5.
+# - Story keys use the number-number-name form (e.g. 0-1-...) parsed by create-story;
+#   they map 1:1 to the stable E<epic>-S<n> IDs in the epic files (E0-S1 == 0-1-...).
+
+generated: 2026-06-07
+last_updated: 2026-06-07  # code review E0-S1 → done
+project: MiniCRM
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # ---- Epic 0: Platform Guidelines & Standards (the governing contract) — PILOT ----
+  epic-0: in-progress
+  0-1-author-status-enums-transition-maps-and-tone: done
+  0-2-author-baseentity-and-canonical-entity-types: backlog
+  0-3-define-repository-page-listquery: backlog
+  0-4-implement-localstoragerepository-4-beat-rest-contract: backlog
+  0-5-authprovider-useauth-mock-sso: backlog
+  0-6-route-guard-action-guard-permission-matrix: backlog
+  0-7-audit-log-domain-event-bus-shared-correlationid: backlog
+  0-8-structured-logger: backlog
+  0-9-shared-component-inventory-page-templates: backlog
+  0-10-flag-config-provider-noop-external-ports: backlog
+  0-11-testing-harness-universal-dod-codified: backlog
+  0-12-notifications-kernel: backlog
+  epic-0-retrospective: optional
+
+  # ---- Epic 1: Tenancy & Subsidiary — PILOT ----
+  epic-1: backlog
+  1-1-thread-tenantcontext-and-enforce-isolation: backlog
+  1-2-onboard-a-subsidiary: backlog
+  1-3-offboard-a-subsidiary-soft-delete-reassign-orphans: backlog
+  1-4-switcher-in-appshell: backlog
+  1-5-cross-subsidiary-roll-up-read-model: backlog
+  epic-1-retrospective: optional
+
+  # ---- Epic 2: Leads — Capture → Qualify — PILOT ----
+  epic-2: backlog
+  2-1-capture-a-lead: backlog
+  2-2-list-and-filter-leads: backlog
+  2-3-walk-a-lead-through-its-lifecycle: backlog
+  2-4-lead-detail-activity-timeline: backlog
+  epic-2-retrospective: optional
+
+  # ---- Epic 3: Conversion Saga & Customer Onboarding — PILOT ----
+  epic-3: backlog
+  3-1-convert-a-qualified-lead-via-the-reference-saga: backlog
+  3-2-walk-a-customer-prospect-onboarding-active: backlog
+  3-3-customer-list-detail-with-lineage-timeline: backlog
+  epic-3-retrospective: optional
+
+  # ---- Epic 4: Ticketing & Activity Timeline — PILOT ----
+  epic-4: backlog
+  4-1-create-a-ticket-against-an-eligible-customer: backlog
+  4-2-walk-a-ticket-through-its-lifecycle: backlog
+  4-3-assign-a-ticket-to-a-single-assignee: backlog
+  4-4-unified-per-record-activity-timeline: backlog
+  epic-4-retrospective: optional
+
+  # ---- Epic 5: Dashboard Shell, Read-Model Widget & Notifications — PILOT ----
+  epic-5: backlog
+  5-1-role-scoped-dashboard-shell: backlog
+  5-2-one-read-model-widget-fed-from-the-event-log: backlog
+  5-3-notifications-inbox-bell-consuming-the-shared-kernel: backlog
+  epic-5-retrospective: optional
+
+  # ---- Epic 6: Server-Side Trust Boundary — DESIGN-ONLY (NOT pilot; gated by Open Questions) ----
+  epic-6: backlog
+  6-1-server-side-scoping-validation-authorization-postgres-rls: backlog
+  6-2-swap-to-httprepository-at-the-composition-root: backlog
+  6-3-cross-tenant-isolation-e2e-the-acceptance-gate: backlog
+  6-4-transactional-outbox-cqrs-lite-read-models-oidc: backlog
+  epic-6-retrospective: optional
