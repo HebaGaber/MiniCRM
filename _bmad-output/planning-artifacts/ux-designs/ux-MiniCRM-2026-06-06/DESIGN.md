@@ -15,18 +15,23 @@ spacing: "{ds.space.*}"         # spacing scale — from the DS.
 elevation: "{ds.shadow.*}"      # shadow/elevation ramp — from the DS.
 
 # --- Authored here (DEC-UX-2): motion tokens. Functional + light polish (DEC-UX-3). ---
+# REALIZED in prototype/tokens/motion.css (DEC-UX-8/9). Durations unchanged; easing values updated
+# to the realized curves; reduced-motion reconciled to the realized rule. Token names are --crm-*.
 motion:
+  source: "prototype/tokens/motion.css"   # realized source of record (DEC-UX-8)
   duration:
-    instant: 0ms        # state that must read as immediate (optimistic apply)
-    fast: 120ms         # hover, focus ring, pill tone change, toast enter
-    base: 200ms         # skeleton→ready cross-fade, dialog/sheet enter, page transition
-    slow: 320ms         # rollback snap-back (deliberately legible — the user must SEE it)
+    instant: 0ms        # --crm-instant · optimistic apply (the mutation is already done)
+    fast: 120ms         # --crm-fast · hover, focus ring, pill tone change, toast enter
+    base: 200ms         # --crm-base · skeleton→ready, dialog/switcher enter, route, saga step
+    slow: 320ms         # --crm-slow · rollback snap-back (deliberately the slowest — must be SEEN)
   easing:
-    standard: "cubic-bezier(0.2, 0, 0, 1)"     # most transitions (enter + move)
-    decelerate: "cubic-bezier(0, 0, 0, 1)"     # elements entering the screen
-    accelerate: "cubic-bezier(0.3, 0, 1, 1)"   # elements leaving (toast exit)
-  reduced: "When prefers-reduced-motion: reduce — all durations collapse to 0ms except
-    opacity cross-fades, which keep duration.fast. No transforms, no slide, no snap-back travel."
+    standard: "cubic-bezier(0.4, 0, 0.2, 1)"          # --crm-ease-standard · moves (on-screen)
+    decelerate: "var(--iso-ease-out)"                 # --crm-ease-decelerate = cubic-bezier(0.22,1,0.36,1) · enters
+    accelerate: "cubic-bezier(0.4, 0, 1, 1)"          # --crm-ease-accelerate · exits
+  travel: "--crm-travel (1; → 0 under reduced-motion) — transform-distance scalar"
+  reduced: "When prefers-reduced-motion: reduce — --crm-travel collapses to 0 and base/slow flatten
+    to 120ms (fast stays 120ms, instant stays 0ms). No transforms, slide, or snap-back travel;
+    opacity cross-fades survive; all state changes and all feedback still fire (DEC-UX-9)."
 
 # --- Status tone → DS tone tokens. Mapping is OWNED by §3.3 STATUS_TONE; never recolored here. ---
 tone:
@@ -89,8 +94,10 @@ Every animation maps to a state change the user needs to perceive; nothing moves
 Easing: `standard` for moves, `decelerate` for entering elements, `accelerate` for exits.
 **`prefers-reduced-motion: reduce` is honored** per the `motion.reduced` rule above — opacity
 cross-fades survive (at `fast`); all travel/transform/snap-back is removed, state still changes
-instantly and legibly. *[ASSUMPTION] numeric durations are this layer's proposal; if the iSolution*
-*DS later ships motion tokens, defer to them and delete these.*
+instantly and legibly. **Realized (DEC-UX-8/9): these tokens now live in `prototype/tokens/motion.css`**
+as `--crm-instant/--crm-fast/--crm-base/--crm-slow` + `--crm-ease-standard/-decelerate/-accelerate`
++ the `--crm-travel` scalar; product code references those token names, never raw ms/curves. *If the*
+*iSolution DS later ships motion tokens, defer to them.*
 
 ## Do's and Don'ts
 

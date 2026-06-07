@@ -22,13 +22,21 @@
 
 ## §8.6 Motion tokens (authored — DS owns no motion)
 
-Defined in DESIGN.md. `instant 0ms` (optimistic apply) · `fast 120ms` (hover, focus, **pill tone
-change**, toast enter) · `base 200ms` (skeleton→ready, dialog/switcher enter, route, saga step) ·
-`slow 320ms` (**rollback snap-back — deliberately the slowest, so reversal is seen**). Easing:
-`standard` moves, `decelerate` enters, `accelerate` exits. **`prefers-reduced-motion: reduce` is
-honored everywhere**: no travel/transform/snap-back; opacity cross-fades survive at `fast`; all
-state still changes and all feedback still fires. No decorative motion. Elevation (DS values) is
-reserved for transient overlays only; the saga inspector is in-page and does **not** elevate.
+Defined in DESIGN.md; **realized in `prototype/tokens/motion.css` as `--crm-*` tokens (DEC-UX-8/9)** —
+product code references those token names, never raw ms/curves. `instant 0ms` (`--crm-instant`,
+optimistic apply) · `fast 120ms` (`--crm-fast`: hover, focus, **pill tone change**, toast enter) ·
+`base 200ms` (`--crm-base`: skeleton→ready, dialog/switcher enter, route, saga step) · `slow 320ms`
+(`--crm-slow`: **rollback snap-back — deliberately the slowest, so reversal is seen**). Easing:
+`--crm-ease-standard` moves, `--crm-ease-decelerate` (= DS `--iso-ease-out`) enters,
+`--crm-ease-accelerate` exits. **`prefers-reduced-motion: reduce` is honored everywhere**: the
+`--crm-travel` scalar drops to 0 and base/slow flatten to 120ms; no travel/transform/snap-back;
+opacity cross-fades survive at `fast`; all state still changes and all feedback still fires. No
+decorative motion. Elevation (DS values) is reserved for transient overlays only; the saga inspector
+is in-page and does **not** elevate. **Derived step-cadence values** beyond the four duration tokens
+(e.g. the saga step advance `base + 60ms`, compensation `base + 80ms`, scope re-query `base + 220ms`,
+the optimistic-undo window `~700ms`, the offboard per-record tick `max(90, base/2)`) are **JS timing
+constants**, not CSS style tokens — define them as **named constants** derived from the `--crm-*`
+durations; **never inline raw `ms` (or raw opacity) literals in components** (NFR-10).
 
 ## §8.7 Four-state behavior (NFR-9/UC-1) — binds the `<QueryStateBoundary>`
 
