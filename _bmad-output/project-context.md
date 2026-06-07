@@ -66,6 +66,8 @@ export interface User extends BaseEntity { email: string; displayName: string; r
 export interface Customer extends BaseEntity {
   name: string; primaryEmail: string; phone?: string;
   status: CustomerStatus; convertedFromLeadId: ID | null;
+  taxRegistrationNumber?: string; // DEC-CC-2: required to activate (see §3.2 gate)
+  contactAddress?: string;        // DEC-CC-2: required to activate (see §3.2 gate)
 }
 
 // PRODUCT — Sales Journey (lead portion)
@@ -127,6 +129,8 @@ export const TICKET_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
 };
 ```
 Rule: a status change that isn't in the transition map is rejected with `422 UNPROCESSABLE` and is **never** silently allowed. Every accepted change emits a `*.StatusChanged` event (§7).
+
+> **DEC-CC-2 — Customer activation gate (2026-06-07, prototype reconciliation).** The `onboarding → active` transition carries an additional **precondition**: the customer must have **both** `taxRegistrationNumber` **and** `contactAddress` set (§2.2). A move to `active` without both is rejected `422` with inline feedback (*"Add a tax registration number and contact address before activating this customer."*) — **no pill change, no `*.StatusChanged` event** — exactly like the ticket customer-state gate. This is a precondition on a legal edge, not a new edge; `CUSTOMER_TRANSITIONS` is structurally unchanged. See `_bmad-output/decision-log.md`.
 
 ### 3.3 Status → UI tone mapping (used by the StatusPill component only)
 ```ts
@@ -231,8 +235,11 @@ Error codes: `400` malformed, `401` unauthenticated, `403` unauthorized (role/te
 | Manage tenant/subsidiaries, users | ✅ | — | — | — |
 | Leads: create/edit/convert | ✅ | ✅ | — | read |
 | Customers: edit | ✅ | ✅ | read | read |
-| Tickets: create/edit/assign | ✅ | read | ✅ | read |
+| Tickets: **create** (DEC-CC-1) | ✅ | ✅ | ✅ | ✅ |
+| Tickets: edit/assign | ✅ | read | ✅ | read |
 | View audit/events | ✅ | own | own | — |
+
+> **DEC-CC-1 (2026-06-07, prototype reconciliation):** ticket **creation** is granted to **every role** (incl. `sales` and `viewer`) — tickets are the one entity anyone in scope may raise. Ticket **edit/assign** is unchanged (admin/support write; sales/viewer read). Customer **edit** stays `support = read` (C-2 ruled "keep constitution"). See `_bmad-output/decision-log.md`.
 
 ### 6.3 Enforcement rules
 1. **Two gates, always:** a route guard (can this role open the screen?) and an action guard (can this role perform this mutation on this record, in this tenant/subsidiary?).
@@ -317,7 +324,9 @@ states: loading→table skeleton · empty→empty-state · error→retry
 **Dashboard** (`<Dashboard>`): stat callouts + simple charts fed by the events/aggregates; role-scoped.
 
 ### 8.3 Shared component inventory (use these, don't reinvent)
-`AppShell` (nav + tenant/subsidiary switcher) · `DataTable` · `StatusPill` (driven by §3.3) · `Toolbar` · `FilterBar` · `EntityForm` fields (`TextField`, `SelectField`, `DateField`) · `ConfirmDialog` (required for any destructive/convert action) · `Toast` (operation outcomes) · `EmptyState` · `ErrorState` · `Skeleton`.
+`AppShell` (nav + tenant/subsidiary switcher) · `DataTable` · `StatusPill` (driven by §3.3) · `Toolbar` · `FilterBar` · `EntityForm` fields (`TextField`, `SelectField`, `DateField`) · `ConfirmDialog` (required for any destructive/convert action) · `Toast` (operation outcomes) · `EmptyState` · `ErrorState` · `Skeleton` · **`RecordPager`** (DEC-CC-3).
+
+> **DEC-CC-3 — `RecordPager` + side-by-side view added to the inventory (2026-06-07, prototype reconciliation; NFR-10 exception logged).** `RecordPager` is a sticky detail-view bar exposing prev/next (respecting the active list filter/sort order), "N of M · <noun>", a **Side/Full view toggle**, and Close; it is keyboard-operable (`↑/←/k` prev, `↓/→/j` next, `Esc` close; suppressed in inputs). The **Side view** renders the list beside the detail panel (open row highlighted), persisted per-user. These extend the fixed inventory **by approval** (they are *not* a per-screen one-off): the DetailPage template hosts them; no other new layouts are permitted. See `_bmad-output/decision-log.md`.
 
 ### 8.4 Design & accessibility rules
 - Use Claude Design tokens (color/type/spacing/radius). **No hardcoded hex, px, or font values** in components.
@@ -347,6 +356,12 @@ change**, toast enter) · `base 200ms` (skeleton→ready, dialog/switcher enter,
 honored everywhere**: no travel/transform/snap-back; opacity cross-fades survive at `fast`; all
 state still changes and all feedback still fires. No decorative motion. Elevation (DS values) is
 reserved for transient overlays only; the saga inspector is in-page and does **not** elevate.
+**Derived step-cadence values** beyond the four duration tokens (saga step `base + 60ms`,
+compensation `base + 80ms`, scope re-query `base + 220ms`, optimistic-undo `~700ms`, offboard tick
+`max(90, base/2)`) are **JS timing constants** — define them as named constants derived from the
+`--crm-*` durations; **never inline raw `ms`/opacity literals in components** (NFR-10). The modal
+overlay scrim is a **DS token** (`--iso-overlay-scrim` + blur token), never a raw `rgba()`/`px`
+(DEC-CC-4).
 
 ## §8.7 Four-state behavior (NFR-9/UC-1) — binds the `<QueryStateBoundary>`
 

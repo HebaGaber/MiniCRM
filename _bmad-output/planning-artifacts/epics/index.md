@@ -57,7 +57,9 @@ Epic 0 (kernels) ──ships first──┐
    E0-S1 (status maps incl. CUSTOMER_TRANSITIONS) ─┐  PREREQUISITES for Epic 3 & Epic 4
    E0-S2 (entities incl. WorkflowInstance) ────────┘
    E0-S7 (event bus) ──→ E0-S12 (Notifications kernel) ──→ E4-S3, E5-S3
-Epic 0 build order: S1+S2 → S3+S4 → S5+S6 → S7+S8 → S9 → S10+S12 → S11
+Epic 0 build order (derived from depends_on edges — S7 is the auth/event prerequisite for S5/S6;
+S4's 4-beat authorize/emit/audit needs S5/S6/S7, so S4 lands last among the kernels):
+  S1 → (S2, S7) → (S3, S5, S8) → S6 → S9 → S4 → (S10, S12) → S11
 Epics 1–5 are pure product code on the Epic-0 kernels (each inherits UC-1…UC-5 + TC).
 Epic 6 = DESIGN-ONLY (production trust boundary); revisit Open Questions 1/2/5 before kickoff.
 ```

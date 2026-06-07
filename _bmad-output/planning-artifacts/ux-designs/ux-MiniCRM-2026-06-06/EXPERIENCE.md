@@ -318,9 +318,12 @@ conversion lineage — one continuous story (§6.6). **Edge:** filing a ticket w
 `prospect` → blocked by the customer-state gate, **422**, inline "Tickets open once the customer is
 Onboarding or Active" — no ticket created, nothing half-done (Principle 4).
 
-**UJ-5 — Dana reads the funnel across her org.** Dana opens the `Dashboard`; one read-model widget
-(conversion funnel / per-subsidiary roll-up) aggregates from the event log (four states apply).
-**Climax:** she sees a cross-subsidiary roll-up no single-subsidiary user can see (scope made
-visible as *capability*, Principle 3). A `Ticket.Assigned` fires an in-app notification to its
-assignee via the bell (§6.7). **Edge:** a subsidiary user on the same dashboard sees only their own
-scope — same surface, scoped data, no leak.
+**UJ-5 — Dana reads the funnel across her org.** Dana opens the `Dashboard`; one read-model widget —
+**the conversion funnel (OQ3 settled, DEC-UX-7)**: five derived, read-only stages New · Contacted ·
+Qualified · Converted · Active customers — aggregates from the event log (four states apply), with a
+"Derived · read-only" lock pill, beside a Notifications card. **Climax:** in tenant scope she sees a
+cross-subsidiary aggregate ("Aggregated across every subsidiary") no single-subsidiary user can see
+(scope made visible as *capability*, Principle 3). A `Ticket.Assigned` fires an in-app notification
+to its assignee via the bell (§6.7). **Edge:** a subsidiary user on the same dashboard sees only
+their own scope ("Scoped to <scope> — sibling subsidiaries are not counted.") — same surface, scoped
+data, no leak. *(The per-subsidiary roll-up is the separate E1-S5 Roll-up surface, not this widget.)*
