@@ -45,7 +45,7 @@
 
 generated: 2026-06-07
 
-last_updated: 2026-06-08  # E0-S11 → done
+last_updated: 2026-06-08  # E1-S1 → ready-for-dev
 
 project: MiniCRM
 project_key: NOKEY
@@ -70,8 +70,8 @@ development_status:
   epic-0-retrospective: optional
 
   # ---- Epic 1: Tenancy & Subsidiary — PILOT ----
-  epic-1: backlog
-  1-1-thread-tenantcontext-and-enforce-isolation: backlog
+  epic-1: in-progress
+  1-1-thread-tenantcontext-and-enforce-isolation: ready-for-dev
   1-2-onboard-a-subsidiary: backlog
   1-3-offboard-a-subsidiary-soft-delete-reassign-orphans: backlog
   1-4-switcher-in-appshell: backlog

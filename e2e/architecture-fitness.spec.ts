@@ -85,3 +85,32 @@ test('no src/shared/** module (outside the adapter) imports LocalStorageReposito
     `Shared modules must not import the concrete adapter — use Repository<T> instead:\n${violations.join('\n')}`,
   ).toHaveLength(0);
 });
+
+// ── E1-S1: Scope-param seam assertions (AC2, UC-5) ───────────────────────────
+
+test('no src/features/** file reads .tenantId or .subsidiaryId directly (E1-S1 AC2)', () => {
+  // Feature code must get scope only via useTenant() — never by reading
+  // session.tenantId / session.subsidiaryId in product code (UC-5, ADR-002).
+  // This passes trivially today (features/ doesn't exist yet) and becomes a
+  // live gate when Epic 2–5 feature code is added.
+  const featuresDir = path.resolve('src/features');
+  const files = collectTsFiles(featuresDir);
+  const violations: string[] = [];
+
+  for (const file of files) {
+    const rel = path.relative(process.cwd(), file);
+    if (/\.test\.(ts|tsx)$/.test(rel)) continue;
+    const content = fs.readFileSync(file, 'utf8');
+    // Match direct property access of tenantId/subsidiaryId on session or any object
+    // (e.g. session.tenantId, claims.subsidiaryId). Feature code must not read these
+    // directly — it should call useTenant() which provides them via context.
+    if (/\b(?:session|claims|auth)\s*[?.]?\s*(?:tenantId|subsidiaryId)\b/.test(content)) {
+      violations.push(rel);
+    }
+  }
+
+  expect(
+    violations,
+    `Feature code must not read tenantId/subsidiaryId directly — use useTenant():\n${violations.join('\n')}`,
+  ).toHaveLength(0);
+});

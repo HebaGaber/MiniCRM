@@ -185,3 +185,91 @@ test('two tenants can each have their own lead with no interference', async () =
   expect(pageA.data.every((l) => l.tenantId === TENANT_A)).toBe(true);
   expect(pageB.data.every((l) => l.tenantId === TENANT_B)).toBe(true);
 });
+
+// ── E1-S1: Subsidiary isolation (AC4, ADR-002) ───────────────────────────────
+// Within a single tenant, a subsidiary-pinned user sees only their own subsidiary
+// + parent-level records. Sibling subsidiaries are invisible.
+
+const TENANT_C = 'tnt_isolation_c' as ID;
+const SUB_ALPHA = 'sub_alpha' as ID;
+const SUB_BETA  = 'sub_beta'  as ID;
+
+const tenantAdminSession: SessionClaims = {
+  userId: 'usr_admin_c' as ID,
+  tenantId: TENANT_C,
+  subsidiaryId: null,   // tenant_admin roll-up
+  roles: ['tenant_admin'],
+  exp: '2099-12-31T23:59:59.000Z',
+};
+
+const subAlphaSession: SessionClaims = {
+  userId: 'usr_sales_alpha' as ID,
+  tenantId: TENANT_C,
+  subsidiaryId: SUB_ALPHA,
+  roles: ['sales'],
+  exp: '2099-12-31T23:59:59.000Z',
+};
+
+const subBetaSession: SessionClaims = {
+  userId: 'usr_sales_beta' as ID,
+  tenantId: TENANT_C,
+  subsidiaryId: SUB_BETA,
+  roles: ['sales'],
+  exp: '2099-12-31T23:59:59.000Z',
+};
+
+test('sub_alpha user cannot list sub_beta records (sibling isolation)', async () => {
+  const adminRepo  = new LocalStorageRepository<Lead>(leadConfig, tenantAdminSession);
+  const alphaRepo  = new LocalStorageRepository<Lead>(leadConfig, subAlphaSession);
+  const betaRepo   = new LocalStorageRepository<Lead>(leadConfig, subBetaSession);
+
+  await alphaRepo.create({ ...makeLeadInput(), name: 'Alpha Lead' });
+  await betaRepo.create({ ...makeLeadInput(), name: 'Beta Lead' });
+
+  const alphaPage = await alphaRepo.list({});
+  expect(alphaPage.total).toBe(1);
+  expect(alphaPage.data[0].name).toBe('Alpha Lead');
+
+  const betaPage = await betaRepo.list({});
+  expect(betaPage.total).toBe(1);
+  expect(betaPage.data[0].name).toBe('Beta Lead');
+
+  // Tenant admin sees both
+  const adminPage = await adminRepo.list({});
+  expect(adminPage.total).toBe(2);
+});
+
+test('sub_alpha user get() returns null for sub_beta record', async () => {
+  const alphaRepo = new LocalStorageRepository<Lead>(leadConfig, subAlphaSession);
+  const betaRepo  = new LocalStorageRepository<Lead>(leadConfig, subBetaSession);
+
+  const betaLead = await betaRepo.create({ ...makeLeadInput(), name: 'Beta Lead' });
+  const result = await alphaRepo.get(betaLead.id);
+  expect(result).toBeNull();
+});
+
+test('sub_alpha user can see parent-level (subsidiaryId=null) records', async () => {
+  const adminRepo = new LocalStorageRepository<Lead>(leadConfig, tenantAdminSession);
+  const alphaRepo = new LocalStorageRepository<Lead>(leadConfig, subAlphaSession);
+
+  // tenant_admin writes to _parent bucket (subsidiaryId=null)
+  const parentLead = await adminRepo.create({ ...makeLeadInput(), name: 'Parent Lead' });
+
+  const hit = await alphaRepo.get(parentLead.id);
+  expect(hit).not.toBeNull();
+  expect(hit!.name).toBe('Parent Lead');
+});
+
+test('tenant_admin sees records from all subsidiaries', async () => {
+  const adminRepo = new LocalStorageRepository<Lead>(leadConfig, tenantAdminSession);
+  const alphaRepo = new LocalStorageRepository<Lead>(leadConfig, subAlphaSession);
+  const betaRepo  = new LocalStorageRepository<Lead>(leadConfig, subBetaSession);
+
+  await alphaRepo.create({ ...makeLeadInput(), name: 'Alpha' });
+  await betaRepo.create({ ...makeLeadInput(), name: 'Beta' });
+
+  const page = await adminRepo.list({});
+  expect(page.total).toBe(2);
+  const names = page.data.map((l) => l.name).sort();
+  expect(names).toEqual(['Alpha', 'Beta']);
+});
