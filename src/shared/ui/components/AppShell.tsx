@@ -17,6 +17,7 @@ type NavItem = {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { id: 'rollup',      label: 'Roll-up',     icon: 'bar-chart-2',path: '/rollup',      roles: ['tenant_admin', 'sales', 'support', 'viewer'] },
   { id: 'leads',       label: 'Leads',       icon: 'user-plus',  path: '/leads',       roles: ['tenant_admin', 'sales'] },
   { id: 'customers',   label: 'Customers',   icon: 'building-2', path: '/customers',   roles: ['tenant_admin', 'sales', 'support', 'viewer'] },
   { id: 'tickets',     label: 'Tickets',     icon: 'life-buoy',  path: '/tickets',     roles: ['tenant_admin', 'support', 'sales'] },
