@@ -4,7 +4,7 @@ title: Offboard a subsidiary (soft-delete + reassign orphans)
 epic: "E1 — Tenancy & Subsidiary"
 feature: "1.2 — Subsidiary Onboard / Offboard"
 cut: pilot
-status: review
+status: done
 baseline_commit: c9959bb9ce0d69465bf35304e20a1974f243056b
 depends_on: [E1-S1, E1-S2, E0-S7, E0-S9]
 inherits_uc: [UC-1, UC-2, UC-5, TC]
