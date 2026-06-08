@@ -62,7 +62,7 @@ development_status:
   0-7-audit-log-domain-event-bus-shared-correlationid: done
   0-8-structured-logger: done
   0-9-shared-component-inventory-page-templates: review
-  0-10-flag-config-provider-noop-external-ports: backlog
+  0-10-flag-config-provider-noop-external-ports: review
   0-11-testing-harness-universal-dod-codified: backlog
   0-12-notifications-kernel: backlog
   epic-0-retrospective: optional
