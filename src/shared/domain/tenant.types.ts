@@ -13,6 +13,7 @@ export interface Tenant extends BaseEntity {
 export interface Subsidiary extends BaseEntity {
   name: string;
   parentSubsidiaryId: ID | null; // null = top-level subsidiary
+  region?: string;
 }
 
 export interface User extends BaseEntity {
