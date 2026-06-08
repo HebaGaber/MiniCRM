@@ -2,6 +2,14 @@
 
 Real findings surfaced during review that are not actionable in their originating story. Re-evaluate when the consuming story lands.
 
+## Deferred from: code review of 0-12-notifications-kernel (2026-06-08)
+
+- **No bus subscription in hook — incoming events don't trigger re-renders** (`useNotifications.ts`): `useNotifications()` reads `notificationsFor(recipient)` on render but has no subscription to the bus. A new `Ticket.Assigned` event arriving after mount won't update the displayed unread count until a user interaction forces a re-render. E5-S3 should add a `useEffect` subscribing to `publish` events and calling `forceUpdate()`. Severity: Medium.
+- **`markRead` service function doesn't validate recipient ownership** (`NotificationService.ts:markRead`): `markRead(id)` finds by id only; no check that the notification's `recipient` matches the caller. Low risk in the current single-user session model but should be tightened before multi-tab or shared-session scenarios. Severity: Low.
+- **No dedup guard for duplicate `eventId` in `_store`** (`NotificationService.ts:handleEvent`): `publish()` can be called multiple times with the same `eventId`; `_store.push` has no uniqueness check. Duplicate notifications with the same `id` will cause `markRead` to leave the second copy unread. Fix when idempotency guarantees are needed (E6/outbox). Severity: Low.
+- **`markRead`/`markAllRead` recreated on every render** (`useNotifications.ts`): plain function declarations inside render body create new references every render; wrap in `useCallback` in E5-S3 to prevent downstream `React.memo` thrash. Severity: Low.
+- **HMR double subscription in dev** (`NotificationService.ts`): Vite HMR re-evaluates the module with a fresh `_unsubscribe = null`, so the old subscription from the prior module instance is never removed. Two `handleEvent` closures run simultaneously in dev after a hot reload. Severity: Low (dev-only).
+
 ## Deferred from: code review of 0-2-author-baseentity-and-canonical-entity-types (2026-06-07)
 
 - **`crypto.randomUUID()` requires a secure context** ([src/shared/domain/types.ts:62](../../src/shared/domain/types.ts#L62)). `newId` calls the bare global `crypto.randomUUID()`. It resolves in the Vitest node environment, on `localhost` dev, and over HTTPS in production — but in a browser it is exposed **only in a secure context**, so serving the pilot over plain `http://` on a LAN IP (e.g. demoing from another device) makes `crypto.randomUUID` `undefined` → `TypeError` on every entity create. The story explicitly accepted "no polyfill, no `uuid` dependency" (Dev Notes), so this is **not** a code change for E0-S2. **Action for whoever owns deployment / the dev-server story:** ensure the app is always served from a secure context (HTTPS or `localhost`), or add a guarded fallback at that point. Severity: Medium (only triggers in an insecure-context deployment).
