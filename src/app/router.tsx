@@ -4,7 +4,8 @@
 // NFR-1: src/app imports shared/* and features/* — never reverse.
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import type { Location } from "react-router-dom";
 import { AppShell } from "../shared/ui/components/AppShell";
 import { RouteGuard } from "../shared/auth/guards";
 import { NotFoundView } from "../shared/ui/NotFoundView";
@@ -115,7 +116,19 @@ const DEMO_ROLES: { id: Role; label: string; description: string }[] = [
 ];
 
 function SignInPage() {
-  const { signIn } = useAuth();
+  const { signIn, isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  // Already signed in (e.g. a reload restored the session, or the user clicked a
+  // role): leave the public /sign-in route and land on wherever they were headed.
+  // `from` is stamped by <RequireAuth> when it bounced an unauthenticated visit;
+  // default to "/" (→ /rollup). Never send back to /sign-in (would loop).
+  if (isAuthenticated) {
+    const from = (location.state as { from?: Location } | null)?.from?.pathname;
+    const dest = from && from !== "/sign-in" ? from : "/";
+    return <Navigate to={dest} replace />;
+  }
+
   return (
     <div
       style={{
@@ -179,7 +192,11 @@ function SignInPage() {
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { session } = useAuth();
-  if (session === null) return <Navigate to="/sign-in" replace />;
+  const location = useLocation();
+  // Recognize an authenticated session before redirecting; only an absent session
+  // bounces to the public /sign-in route, carrying `from` so sign-in can return the
+  // user to where they were headed.
+  if (session === null) return <Navigate to="/sign-in" replace state={{ from: location }} />;
   return <>{children}</>;
 }
 

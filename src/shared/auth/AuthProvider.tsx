@@ -49,6 +49,65 @@ const MOCK_EXP = "2099-12-31T23:59:59.000Z";
 // single pilot tenant; `actorId` is an explicit anonymous marker.
 const ANON_ACTOR: ID = "usr_anonymous";
 
+// ── Session persistence (E0-S5, sign-in fix) ─────────────────────────────────
+// The established session is persisted to `sessionStorage` so a full page reload
+// keeps the user signed in instead of bouncing them back to /sign-in. `sessionStorage`
+// (not `localStorage`) is deliberate for the mock: the session lives for the tab's
+// lifetime and clears on tab close, which is the closest mock analogue to a short-
+// lived OIDC token — no stale "logged in last week" sessions linger. This is the auth
+// kernel (shared/auth), not feature code, so it is the legitimate owner of the
+// session-token store; the CLAUDE.md "persist only via Repository<T>" rule governs
+// tenant-scoped ENTITY persistence, not the auth seam's own session. The future OIDC
+// implementation (AC4) replaces this store with token storage behind the same seam.
+const SESSION_STORAGE_KEY = "mincrm.auth.session";
+
+/** Narrow an unknown (parsed JSON) to `SessionClaims` so a tampered/legacy blob is rejected. */
+function isSessionClaims(value: unknown): value is SessionClaims {
+  if (typeof value !== "object" || value === null) return false;
+  const c = value as Record<string, unknown>;
+  return (
+    typeof c.userId === "string" &&
+    typeof c.tenantId === "string" &&
+    (c.subsidiaryId === null || typeof c.subsidiaryId === "string") &&
+    Array.isArray(c.roles) &&
+    c.roles.every((r) => typeof r === "string") &&
+    typeof c.exp === "string"
+  );
+}
+
+/**
+ * Restore a persisted session on mount (silent — emits NO `Auth.LoggedIn`; a reload
+ * is not a fresh login). Returns `null` when nothing valid is stored, the blob is
+ * malformed, or the session has expired. Storage access is guarded so a missing/locked
+ * `sessionStorage` (SSR, privacy mode) degrades to "no session", never throws.
+ */
+function loadPersistedSession(): SessionClaims | null {
+  try {
+    if (typeof sessionStorage === "undefined") return null;
+    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    if (raw === null) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isSessionClaims(parsed)) return null;
+    // Honor `exp`: a stored-but-expired session is treated as signed out.
+    if (Date.parse(parsed.exp) <= Date.now()) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+/** Write-through the current session (or clear it on sign-out). Guarded like the reader. */
+function persistSession(session: SessionClaims | null): void {
+  try {
+    if (typeof sessionStorage === "undefined") return;
+    if (session === null) sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    else sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+  } catch {
+    // Storage full / unavailable — the in-memory session still works for this tab;
+    // only reload-persistence is lost. Never break sign-in over a storage fault.
+  }
+}
+
 /** One canonical-role identity: the actor id and the subsidiary scope it lands in. */
 interface MockIdentity {
   userId: ID;
@@ -172,11 +231,14 @@ function emitAuthEvent(e: AuthEmission): void {
  * `{ session, isAuthenticated, signIn, signOut }` via `useAuth()`.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<SessionClaims | null>(null);
+  // Lazy initializer: restore a persisted session on mount so a reload keeps the user
+  // signed in. This is SILENT — no `Auth.LoggedIn` is emitted for a restore (a reload
+  // is not a new login); only the explicit `signIn` call below audits a login.
+  const [session, setSession] = useState<SessionClaims | null>(loadPersistedSession);
   // Mirrors the latest claims so `signOut` reads them without a stale closure and
   // WITHOUT emitting inside a state updater (React 19 StrictMode may invoke an
   // updater twice — that would double-emit and break UC-2's "exactly one event").
-  const sessionRef = useRef<SessionClaims | null>(null);
+  const sessionRef = useRef<SessionClaims | null>(session);
 
   const signIn = useCallback((roleId: string) => {
     const claims = resolveMockIdentity(roleId);
@@ -196,6 +258,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     sessionRef.current = claims;
     setSession(claims);
+    persistSession(claims); // survive reload (sign-in fix)
     emitAuthEvent({
       type: "Auth.LoggedIn",
       action: "auth.login",
@@ -212,6 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (current === null) return; // no session → nothing to clear, no event
     sessionRef.current = null;
     setSession(null);
+    persistSession(null); // clear the persisted session (sign-in fix)
     emitAuthEvent({
       type: "Auth.LoggedOut",
       action: "auth.logout",
@@ -234,6 +298,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const updated = { ...current, subsidiaryId: id };
     sessionRef.current = updated;
     setSession(updated);
+    persistSession(updated); // keep the persisted scope in sync (sign-in fix)
   }, []);
 
   const value = useMemo<AuthContextValue>(
