@@ -6,6 +6,7 @@ import { useAuth } from '../../auth/useAuth'
 import { subscribe } from '../../events/bus'
 import type { DomainEvent } from '../../events/bus'
 import type { Role } from '../../domain/status'
+import type { ID } from '../../domain/types'
 
 type NavItem = {
   id: string
@@ -162,11 +163,158 @@ function UserMenuDropdown({ onClose }: { onClose: () => void }) {
   )
 }
 
-type AppShellProps = {
-  children?: React.ReactNode
+// E1-S4: active subsidiary shape for the scope switcher
+type ActiveSub = {
+  id: ID
+  name: string
+  region?: string
+  tenantId: ID
 }
 
-export function AppShell({ children }: AppShellProps) {
+// ── ScopeOption (individual dropdown row) ────────────────────────────────────
+
+function ScopeOption({ active, icon, name, sub, onClick }: {
+  active: boolean; icon: string; name: string; sub: string; onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '8px 10px',
+        border: 0, borderRadius: 'var(--iso-radius-sm)', cursor: 'pointer', textAlign: 'left',
+        background: active ? 'var(--iso-brand-soft)' : 'transparent',
+        transition: 'background var(--crm-fast) var(--crm-ease-standard)',
+      }}
+      onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--iso-n-100)' }}
+      onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+    >
+      <span style={{
+        width: 28, height: 28, borderRadius: 'var(--iso-radius-xs)', flexShrink: 0,
+        background: active ? 'var(--iso-brand)' : 'var(--iso-blue-3-100)',
+        color: active ? 'var(--iso-fg-on-brand)' : 'var(--iso-brand)',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Icon name={icon} size={15} />
+      </span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block', font: '500 13px/1.3 var(--iso-font-body)', color: 'var(--iso-fg)' }}>{name}</span>
+        <span style={{ display: 'block', font: '400 11px/1.3 var(--iso-font-ui)', color: 'var(--iso-fg-subtle)' }}>{sub}</span>
+      </span>
+      {active && <Icon name="check" size={15} style={{ color: 'var(--iso-brand)', flexShrink: 0 }} />}
+    </button>
+  )
+}
+
+// ── ScopeSwitcher (E1-S4) ─────────────────────────────────────────────────────
+
+function ScopeSwitcher({ activeSubs }: { activeSubs: ActiveSub[] }) {
+  const { session, setSubsidiaryScope } = useAuth()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [open])
+
+  if (session === null) return null
+
+  const isAdmin = session.roles.includes('tenant_admin')
+  const currentSubId = session.subsidiaryId
+  const isTenant = currentSubId === null
+  const currentSub = activeSubs.find(s => s.id === currentSubId)
+  const currentName = isTenant ? 'Whole tenant (roll-up)' : (currentSub?.name ?? currentSubId ?? '—')
+  const locked = !isAdmin
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        disabled={locked}
+        onClick={() => !locked && setOpen(o => !o)}
+        title={locked ? 'Scope is fixed for your role' : 'Switch scope'}
+        data-testid="scope-switcher-chip"
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10, height: 38, padding: '0 12px',
+          cursor: locked ? 'default' : 'pointer',
+          border: `1px solid ${open ? 'var(--iso-brand)' : 'var(--iso-border)'}`,
+          borderRadius: 'var(--iso-radius-sm)', background: 'var(--iso-bg)',
+          boxShadow: open ? 'var(--iso-shadow-focus)' : 'none',
+          transition: 'border-color var(--crm-fast) var(--crm-ease-standard), box-shadow var(--crm-fast) var(--crm-ease-standard)',
+        }}
+      >
+        <span style={{
+          width: 26, height: 26, borderRadius: 'var(--iso-radius-xs)', flexShrink: 0,
+          background: isTenant ? 'var(--iso-brand)' : 'var(--iso-brand-soft)',
+          color: isTenant ? 'var(--iso-fg-on-brand)' : 'var(--iso-brand)',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon name={isTenant ? 'layers' : 'building-2'} size={15} />
+        </span>
+        <span style={{ textAlign: 'left', minWidth: 0 }}>
+          <span style={{ display: 'block', font: '500 12px/1.2 var(--iso-font-body)', color: 'var(--iso-fg-strong)', whiteSpace: 'nowrap' }}>
+            Northwind Trading
+          </span>
+          <span style={{ display: 'block', font: '400 11px/1.2 var(--iso-font-ui)', color: 'var(--iso-fg-muted)', whiteSpace: 'nowrap' }}>
+            {currentName}
+          </span>
+        </span>
+        {locked
+          ? <Icon name="lock" size={13} style={{ color: 'var(--iso-fg-subtle)', marginLeft: 2, flexShrink: 0 }} />
+          : <Icon name="chevrons-up-down" size={15} style={{ color: 'var(--iso-fg-subtle)', marginLeft: 2, flexShrink: 0 }} />
+        }
+      </button>
+
+      {open && !locked && (
+        <div
+          data-testid="scope-dropdown"
+          style={{
+            position: 'absolute', top: 44, left: 0, width: 288,
+            background: 'var(--iso-bg)', border: '1px solid var(--iso-border)',
+            borderRadius: 'var(--iso-radius-md)', boxShadow: 'var(--iso-shadow-lg)',
+            padding: 6, zIndex: 'var(--iso-z-dropdown)',
+            animation: 'crm-pop var(--crm-base) var(--crm-ease-decelerate)',
+          }}
+        >
+          <div style={{
+            font: '500 10px/1 var(--iso-font-ui)', letterSpacing: '0.06em',
+            textTransform: 'uppercase', color: 'var(--iso-fg-subtle)', padding: '8px 10px 6px',
+          }}>
+            Northwind Trading · scope
+          </div>
+          <ScopeOption
+            active={isTenant}
+            icon="layers"
+            name="Whole tenant (roll-up)"
+            sub="Aggregate across the tenant"
+            onClick={() => { setSubsidiaryScope(null, session.tenantId); setOpen(false) }}
+          />
+          <div style={{ height: 1, background: 'var(--iso-border-muted)', margin: '4px 8px' }} />
+          {activeSubs.map(s => (
+            <ScopeOption
+              key={s.id}
+              active={currentSubId === s.id}
+              icon="building-2"
+              name={s.name}
+              sub={s.region ?? ''}
+              onClick={() => { setSubsidiaryScope(s.id, s.tenantId); setOpen(false) }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+type AppShellProps = {
+  children?: React.ReactNode
+  activeSubs?: ActiveSub[]
+}
+
+export function AppShell({ children, activeSubs = [] }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const { session } = useAuth()
@@ -361,24 +509,8 @@ export function AppShell({ children }: AppShellProps) {
           padding: '0 var(--iso-space-6)',
         }}
       >
-        {/* Scope switcher placeholder — E1-S4 fills this */}
-        <div
-          aria-label="Scope switcher (coming soon)"
-          style={{
-            height: '38px',
-            padding: '0 var(--iso-space-3)',
-            border: '1px solid var(--iso-border)',
-            borderRadius: 'var(--iso-radius-sm)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--iso-space-2)',
-            font: '400 13px/1 var(--iso-font-body)',
-            color: 'var(--iso-fg-muted)',
-          }}
-        >
-          <Icon name="layers" size={15} />
-          <span>All scopes</span>
-        </div>
+        {/* Scope switcher — E1-S4 */}
+        <ScopeSwitcher activeSubs={activeSubs} />
 
         {/* Search (decorative) */}
         <div
