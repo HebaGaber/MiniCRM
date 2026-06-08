@@ -65,3 +65,13 @@ export const ticketSchema = baseEntitySchema.extend({
 });
 
 export type TicketSchema = z.infer<typeof ticketSchema>;
+
+// ── Subsidiary (project-context.md §2.2, tenant.types.ts) ─────────────────────
+
+export const subsidiarySchema = baseEntitySchema.extend({
+  name: z.string().min(1, "Subsidiary name is required"),
+  parentSubsidiaryId: z.string().nullable(),
+  region: z.string().optional(),
+});
+
+export type SubsidiarySchema = z.infer<typeof subsidiarySchema>;
