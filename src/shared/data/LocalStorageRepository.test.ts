@@ -449,3 +449,57 @@ describe("Authorization denial (AC5)", () => {
     });
   });
 });
+
+// ── E1-S1 — Subsidiary isolation (AC4, ADR-002) ───────────────────────────────
+
+describe("E1-S1 — subsidiary scope-resolution rule (AC4)", () => {
+  const subUSSession: SessionClaims = {
+    userId: newId("user"),
+    tenantId: TENANT_A,
+    subsidiaryId: SUB_US,
+    roles: ["sales"],
+    exp: "2099-12-31T23:59:59.000Z",
+  };
+
+  it("tenant_admin get() can retrieve a record created by a sub_eu user", async () => {
+    const euLead = await salesRepo().create(makeLeadInput({ name: "EU Record" }));
+    const hit = await adminRepo().get(euLead.id);
+    expect(hit).not.toBeNull();
+    expect(hit?.name).toBe("EU Record");
+  });
+
+  it("sub_eu user get() returns null for a sub_us record (sibling invisible)", async () => {
+    const usRepo = new LocalStorageRepository<Lead>(leadConfig, subUSSession);
+    const usLead = await usRepo.create(makeLeadInput({ name: "US Record" }));
+    const result = await salesRepo().get(usLead.id);
+    expect(result).toBeNull();
+  });
+
+  it("sub_eu user update() on a sub_us record → RepositoryError(404)", async () => {
+    const usRepo = new LocalStorageRepository<Lead>(leadConfig, subUSSession);
+    const usLead = await usRepo.create(makeLeadInput());
+    await expect(salesRepo().update(usLead.id, { name: "Injected" }, 1)).rejects.toMatchObject({
+      statusCode: 404,
+    });
+  });
+
+  it("sub_eu user can get() a parent-level (_parent) record", async () => {
+    const parentLead = await adminRepo().create(makeLeadInput({ name: "Parent Record" }));
+    // Parent records have subsidiaryId=null (created by tenant_admin who stores to _parent bucket).
+    // sub_eu user has access to _parent bucket.
+    const hit = await salesRepo().get(parentLead.id);
+    expect(hit).not.toBeNull();
+    expect(hit?.name).toBe("Parent Record");
+  });
+
+  it("sub_eu list() total excludes sub_us rows (AC4 scope-resolution)", async () => {
+    const usRepo = new LocalStorageRepository<Lead>(leadConfig, subUSSession);
+    await salesRepo().create(makeLeadInput({ name: "EU" }));
+    await usRepo.create(makeLeadInput({ name: "US" }));
+
+    const euPage = await salesRepo().list();
+    // Should see: EU record (own) + no US record (sibling)
+    expect(euPage.data.every((r) => r.subsidiaryId !== SUB_US)).toBe(true);
+    expect(euPage.total).toBe(1);
+  });
+});
