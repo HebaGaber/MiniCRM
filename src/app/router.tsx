@@ -9,8 +9,10 @@ import { AppShell } from "../shared/ui/components/AppShell";
 import { RouteGuard } from "../shared/auth/guards";
 import { NotFoundView } from "../shared/ui/NotFoundView";
 import { SubsidiariesPage } from "../features/tenancy/SubsidiariesPage";
+import { RollupPage } from "../features/dashboard/RollupPage";
 import { useRepository } from "./composition";
 import { SUBSIDIARY_CONFIG } from "../features/tenancy/subsidiaryConfig";
+import { LEAD_ROLLUP_CONFIG, CUSTOMER_ROLLUP_CONFIG, TICKET_ROLLUP_CONFIG } from "../features/dashboard/rollupConfigs";
 import { useAuth } from "../shared/auth/useAuth";
 import { subscribe } from "../shared/events/bus";
 import type { DomainEvent } from "../shared/events/bus";
@@ -28,6 +30,26 @@ function SubsidiariesRoute() {
   const repo = useRepository(SUBSIDIARY_CONFIG);
   if (!repo) return null;
   return <SubsidiariesPage repo={repo} />;
+}
+
+// ── RollupRoute (E1-S5) ───────────────────────────────────────────────────────
+// Creates repos at the app layer and injects them into RollupPage.
+// app/ → features/ direction is intentional; the reverse (features/ → app/) is
+// the layering violation the architecture prohibits.
+
+function RollupRoute() {
+  const subsidiaryRepo = useRepository(SUBSIDIARY_CONFIG);
+  const leadRepo = useRepository(LEAD_ROLLUP_CONFIG);
+  const customerRepo = useRepository(CUSTOMER_ROLLUP_CONFIG);
+  const ticketRepo = useRepository(TICKET_ROLLUP_CONFIG);
+  return (
+    <RollupPage
+      subsidiaryRepo={subsidiaryRepo}
+      leadRepo={leadRepo}
+      customerRepo={customerRepo}
+      ticketRepo={ticketRepo}
+    />
+  );
 }
 
 // ── AppShellWithSubsidiaries (E1-S4) ─────────────────────────────────────────
@@ -172,12 +194,20 @@ export function AppRouter() {
             <RequireAuth>
               <AppShellWithSubsidiaries>
                 <Routes>
-                  <Route path="/" element={<Navigate to="/subsidiaries" replace />} />
+                  <Route path="/" element={<Navigate to="/rollup" replace />} />
                   <Route
                     path="/subsidiaries"
                     element={
                       <RouteGuard capability="tenant.manage" fallback={<NotFoundPage />}>
                         <SubsidiariesRoute />
+                      </RouteGuard>
+                    }
+                  />
+                  <Route
+                    path="/rollup"
+                    element={
+                      <RouteGuard capability="rollup.view" fallback={<NotFoundPage />}>
+                        <RollupRoute />
                       </RouteGuard>
                     }
                   />

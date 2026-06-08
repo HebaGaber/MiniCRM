@@ -44,7 +44,8 @@ export type Capability =
   | "ticket.create" //        Tickets: create (DEC-CC-1 — all four roles)
   | "ticket.manage" //        Tickets: edit/assign
   | "audit.view" //           View audit/events
-  | "record.deleteExport"; // Delete(soft)/export (+ hard-delete via `allow`)
+  | "record.deleteExport" //  Delete(soft)/export (+ hard-delete via `allow`)
+  | "rollup.view"; //         Cross-subsidiary roll-up read model (E1-S5)
 
 /**
  * The action being attempted. `read` is the ONLY read action (`isReadAction`);
@@ -111,6 +112,7 @@ export const MATRIX: Record<Capability, Partial<Record<Role, Grant>>> = {
   "ticket.manage": { tenant_admin: "allow", sales: "view", support: "allow", viewer: "view" },
   "audit.view": { tenant_admin: "allow", sales: "own", support: "own", viewer: "deny" },
   "record.deleteExport": { tenant_admin: "allow", sales: "restricted", support: "restricted", viewer: "deny" },
+  "rollup.view": { tenant_admin: "allow", sales: "view", support: "view", viewer: "view" },
 };
 
 // ── Pure predicates (no side effects — cell-tested in isolation, AC3/AC6) ──────
