@@ -44,7 +44,7 @@
 #   they map 1:1 to the stable E<epic>-S<n> IDs in the epic files (E0-S1 == 0-1-...).
 
 generated: 2026-06-07
-last_updated: 2026-06-08  # E0-S6 → done (code-review passed; 3 patches applied)
+last_updated: 2026-06-08  # E0-S4 → in-progress (implementation done; pending code-review)
 project: MiniCRM
 project_key: NOKEY
 tracking_system: file-system
@@ -56,7 +56,7 @@ development_status:
   0-1-author-status-enums-transition-maps-and-tone: done
   0-2-author-baseentity-and-canonical-entity-types: done
   0-3-define-repository-page-listquery: review
-  0-4-implement-localstoragerepository-4-beat-rest-contract: backlog
+  0-4-implement-localstoragerepository-4-beat-rest-contract: in-progress
   0-5-authprovider-useauth-mock-sso: done
   0-6-route-guard-action-guard-permission-matrix: done
   0-7-audit-log-domain-event-bus-shared-correlationid: done

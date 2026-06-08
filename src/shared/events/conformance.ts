@@ -88,3 +88,39 @@ export function expectOneOpOneEventOneAudit(operation: () => void): Emissions {
   assertOneOpOneEventOneAudit(emissions);
   return emissions;
 }
+
+// ── Async variants (for LocalStorageRepository — E0-S4) ──────────────────────
+// The sync helpers above do not await the operation, so they cannot capture
+// emissions from async methods. These async variants keep the subscription alive
+// through the full `await operation()` span.
+
+/**
+ * Async variant of `recordEmissions`: awaits `operation` before tearing down the
+ * bus subscription so emissions from async repository methods are captured.
+ */
+export async function recordEmissionsAsync(
+  operation: () => Promise<unknown>,
+): Promise<Emissions> {
+  const events: DomainEvent[] = [];
+  const unsubscribe = subscribe((e) => events.push(e));
+  const auditCountBefore = allAudits().length;
+  try {
+    await operation();
+  } finally {
+    unsubscribe();
+  }
+  const audits = allAudits().slice(auditCountBefore);
+  return { events, audits };
+}
+
+/**
+ * Async variant of `expectOneOpOneEventOneAudit`. Awaits `operation`, asserts
+ * UC-2 conformance, and returns the captured `Emissions` for further assertions.
+ */
+export async function expectOneOpOneEventOneAuditAsync(
+  operation: () => Promise<unknown>,
+): Promise<Emissions> {
+  const emissions = await recordEmissionsAsync(operation);
+  assertOneOpOneEventOneAudit(emissions);
+  return emissions;
+}
