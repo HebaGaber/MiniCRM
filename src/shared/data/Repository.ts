@@ -52,6 +52,13 @@ export interface Page<T> {
   pageSize: number;
 }
 
+/** Options shared by mutating operations. `correlationId` lets a batch saga thread
+ *  one correlationId across many update/remove calls (E1-S3 offboard). When absent
+ *  the adapter mints its own. */
+export interface MutationOptions {
+  correlationId?: string;
+}
+
 /**
  * The one data-access seam (project-context.md §4.1, ADR-004). Five members,
  * exactly as the constitution defines them.
@@ -61,6 +68,9 @@ export interface Page<T> {
  *   is the adapter's `409` (§4.2 rule 4), not modeled here.
  * - `remove` is a SOFT delete (adapter sets `deletedAt`); lists exclude
  *   soft-deleted unless `filter.includeDeleted = true` (§4.2 rule 5).
+ * - Optional `MutationOptions` on `update`/`remove` allows a caller to thread a
+ *   shared `correlationId` across a batch (E1-S3). When absent the adapter mints
+ *   one per operation (the normal 4-beat behavior).
  */
 export interface Repository<T extends BaseEntity> {
   list(q?: ListQuery): Promise<Page<T>>;
@@ -70,6 +80,7 @@ export interface Repository<T extends BaseEntity> {
     id: ID,
     patch: Partial<Omit<T, keyof BaseEntity>>,
     version: number,
+    options?: MutationOptions,
   ): Promise<T>;
-  remove(id: ID): Promise<void>; // soft delete
+  remove(id: ID, options?: MutationOptions): Promise<void>; // soft delete
 }
