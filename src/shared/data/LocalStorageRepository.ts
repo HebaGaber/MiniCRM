@@ -352,7 +352,7 @@ export class LocalStorageRepository<T extends BaseEntity> implements Repository<
    * Rejects `status` in the patch with 422 — use `transition()` for status changes.
    * Requires the caller's `version`; mismatch → 409.
    */
-  async update(id: ID, patch: Partial<Omit<T, keyof BaseEntity>>, version: number): Promise<T> {
+  async update(id: ID, patch: Partial<Omit<T, keyof BaseEntity>>, version: number, options?: { correlationId?: string }): Promise<T> {
     this.checkFaultInjection();
 
     // Reject status changes via update (must use transition — AC3/AC6)
@@ -368,7 +368,7 @@ export class LocalStorageRepository<T extends BaseEntity> implements Repository<
     }
     const { record, bucketKey } = hit;
 
-    const correlationId = newCorrelationId();
+    const correlationId = options?.correlationId ?? newCorrelationId();
     const now = new Date().toISOString();
 
     // BEAT 1 — AUTHORIZE
@@ -422,10 +422,23 @@ export class LocalStorageRepository<T extends BaseEntity> implements Repository<
   }
 
   /**
-   * Soft-deletes a record (`deletedAt` set). Runs the 4-beat use case.
-   * Lists and `get()` exclude soft-deleted records (use `filter.includeDeleted=true` to include).
+   * Reassigns a record to a different subsidiary scope and applies an optional business-field
+   * patch in one atomic 4-beat (E1-S3 offboard saga). Unlike `update()`, this method is
+   * allowed to change `subsidiaryId` — a BaseEntity field — because the reassignment crosses
+   * scope boundaries by design. Emits `<Entity>.Updated` + audit under the supplied
+   * `correlationId` (the offboard saga threads one id across all records it reassigns).
+   *
+   * This method is intentionally NOT on the Repository<T> interface (it is a pilot-layer
+   * concern, not a general data-access concern). Feature code calls `update()` for normal
+   * edits and `reassign()` only in the offboard saga.
    */
-  async remove(id: ID): Promise<void> {
+  async reassign(
+    id: ID,
+    targetSubsidiaryId: ID | null,
+    businessPatch: Partial<Omit<T, keyof BaseEntity>>,
+    version: number,
+    correlationId: string,
+  ): Promise<T> {
     this.checkFaultInjection();
 
     const hit = this.findRecord(id);
@@ -434,7 +447,82 @@ export class LocalStorageRepository<T extends BaseEntity> implements Repository<
     }
     const { record, bucketKey } = hit;
 
-    const correlationId = newCorrelationId();
+    const now = new Date().toISOString();
+
+    // BEAT 1 — AUTHORIZE (edit capability is required to reassign)
+    this.checkAuthorize("edit", this.ownedResource(record));
+
+    // Version check (409)
+    if (record.version !== version) {
+      throw new RepositoryError(
+        409,
+        "VERSION_CONFLICT",
+        `Version conflict: supplied ${version}, stored ${record.version}`,
+      );
+    }
+
+    // BEAT 2 — MUTATE (set subsidiaryId + business patch + audit fields)
+    const merged = {
+      ...(record as object),
+      ...(businessPatch as object),
+      subsidiaryId: targetSubsidiaryId,
+      updatedAt: now,
+      updatedBy: this.session.userId,
+      version: record.version + 1,
+    } as unknown as T;
+
+    const validated = this.validate(merged);
+
+    // Move the record from its current bucket to the target bucket so that
+    // subsidiary-scoped readers find it under the new scope (not the old one).
+    const oldRows = this.readBucket(bucketKey);
+    this.writeBucket(bucketKey, oldRows.filter((r) => r.id !== id));
+    const targetSeg = targetSubsidiaryId ?? "_parent";
+    const targetBucketKey = `crm:${validated.tenantId}:${targetSeg}:${this.config.name}`;
+    const targetRows = this.readBucket(targetBucketKey);
+    targetRows.push(validated);
+    this.writeBucket(targetBucketKey, targetRows);
+
+    // BEAT 3 — EMIT
+    publish(
+      this.domainEvent(this.config.events.updated, validated, correlationId, now, {
+        before: record,
+        after: validated,
+      }),
+    );
+
+    // BEAT 4 — AUDIT
+    append({
+      id: crypto.randomUUID(),
+      tenantId: validated.tenantId,
+      subsidiaryId: validated.subsidiaryId,
+      actorId: this.session.userId,
+      action: `${this.config.name}.reassign`,
+      entityType: this.config.entityType,
+      entityId: validated.id,
+      occurredAt: now,
+      before: record,
+      after: validated,
+      correlationId,
+    });
+
+    return validated;
+  }
+
+  /**
+   * Soft-deletes a record (`deletedAt` set). Runs the 4-beat use case.
+   * Lists and `get()` exclude soft-deleted records (use `filter.includeDeleted=true` to include).
+   */
+  async remove(id: ID, options?: { correlationId?: string }): Promise<void> {
+    this.checkFaultInjection();
+
+    const hit = this.findRecord(id);
+    if (hit === null || hit.record.deletedAt !== null) {
+      throw new RepositoryError(404, "NOT_FOUND", `Record ${id} not found`);
+    }
+    const { record, bucketKey } = hit;
+
+    const correlationId = options?.correlationId ?? newCorrelationId();
     const now = new Date().toISOString();
 
     // BEAT 1 — AUTHORIZE

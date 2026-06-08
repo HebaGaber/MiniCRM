@@ -13,10 +13,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, fireEvent, act, cleanup, waitFor } from "@testing-library/react";
-import React from "react";
 import { subsidiarySchema } from "../../shared/domain/schemas";
 import { LocalStorageRepository, RepositoryError } from "../../shared/data/LocalStorageRepository";
-import type { EntityConfig } from "../../shared/data/LocalStorageRepository";
 import type { Subsidiary } from "../../shared/domain/tenant.types";
 import type { SessionClaims } from "../../shared/auth/auth.types";
 import type { ID } from "../../shared/domain/types";

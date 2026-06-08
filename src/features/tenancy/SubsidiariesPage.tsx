@@ -1,11 +1,14 @@
-// SubsidiariesPage — tenant admin only (E1-S2, AC1).
+// SubsidiariesPage — tenant admin only (E1-S2, AC1; E1-S3 offboard).
 // Four UI states: loading / empty / error / ready (UC-1).
-// Optimistic create with rollback on injected server error (AC5).
+// Optimistic create with rollback on injected server error (E1-S2, AC5).
+// Offboard row action opens OffboardDialog; post-offboard list reloads (E1-S3).
 // Admin-only gated by <RouteGuard capability="tenant.manage"> in router.tsx.
 
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Subsidiary } from "../../shared/domain/tenant.types";
 import type { Repository } from "../../shared/data/Repository";
+import type { SessionClaims } from "../../shared/auth/auth.types";
+import { useAuth } from "../../shared/auth/useAuth";
 import { DataTable } from "../../shared/ui/components/DataTable";
 import type { ColumnDef } from "../../shared/ui/components/DataTable";
 import { Button } from "../../shared/ui/components/Button";
@@ -13,6 +16,7 @@ import { Toolbar } from "../../shared/ui/components/Toolbar";
 import { Icon } from "../../shared/ui/components/Icon";
 import { StatusPill } from "../../shared/ui/components/StatusPill";
 import { OnboardForm } from "./OnboardForm";
+import { OffboardDialog } from "./OffboardDialog";
 
 type PageState = "loading" | "empty" | "error" | "ready";
 
@@ -21,10 +25,12 @@ type Props = {
 };
 
 export function SubsidiariesPage({ repo }: Props) {
+  const { session } = useAuth();
   const [allRows, setAllRows] = useState<Subsidiary[]>([]);
   const [pageState, setPageState] = useState<PageState>("loading");
   const [includeOffboarded, setIncludeOffboarded] = useState(false);
   const [showOnboard, setShowOnboard] = useState(false);
+  const [offboardTarget, setOffboardTarget] = useState<Subsidiary | null>(null);
   const [searchValue, setSearchValue] = useState("");
 
   const load = useCallback(async () => {
@@ -267,9 +273,7 @@ export function SubsidiariesPage({ repo }: Props) {
                     label: "Offboard subsidiary",
                     icon: "log-out",
                     tone: "danger",
-                    onClick: () => {
-                      /* E1-S3 */
-                    },
+                    onClick: () => setOffboardTarget(r),
                   },
                 ]
               : [{ label: "Offboarded — read only", icon: "lock", onClick: () => {} }]
@@ -284,6 +288,19 @@ export function SubsidiariesPage({ repo }: Props) {
           onClose={() => setShowOnboard(false)}
           onOptimisticAdd={handleOptimisticAdd}
           onRollback={handleRollback}
+        />
+      )}
+
+      {offboardTarget !== null && session !== null && (
+        <OffboardDialog
+          sub={offboardTarget}
+          activeSubs={activeSubs}
+          session={session as SessionClaims}
+          onClose={() => setOffboardTarget(null)}
+          onOffboarded={() => {
+            setOffboardTarget(null);
+            void load();
+          }}
         />
       )}
     </div>

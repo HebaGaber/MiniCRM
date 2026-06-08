@@ -6,7 +6,7 @@
 // Motion: modal enter crm-pop at --crm-base; rollback snap-back at --crm-slow.
 // Focus-trap, first-field autofocus, Esc cancels (prototype §UX).
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Repository } from "../../shared/data/Repository";
 import type { Subsidiary } from "../../shared/domain/tenant.types";
 import { EntityForm, TextField, SelectField } from "../../shared/ui/templates/EntityForm";
@@ -45,7 +45,9 @@ export function OnboardForm({ repo, activeSubs, onClose, onOptimisticAdd, onRoll
         const panel = panelRef.current;
         if (!panel) return;
         const focusable = Array.from(
-          panel.querySelectorAll<HTMLElement>("input,select,button"),
+          panel.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLButtonElement>(
+            "input,select,button",
+          ),
         ).filter((el) => !el.disabled);
         if (!focusable.length) return;
         const [first] = focusable;
