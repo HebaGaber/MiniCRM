@@ -44,7 +44,9 @@
 #   they map 1:1 to the stable E<epic>-S<n> IDs in the epic files (E0-S1 == 0-1-...).
 
 generated: 2026-06-07
+
 last_updated: 2026-06-08  # E0-S9 → ready-for-dev
+
 project: MiniCRM
 project_key: NOKEY
 tracking_system: file-system
