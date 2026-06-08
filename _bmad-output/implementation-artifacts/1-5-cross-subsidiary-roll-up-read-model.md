@@ -2,7 +2,7 @@
 id: E1-S5
 title: Cross-subsidiary roll-up (read model)
 baseline_commit: 4bb9544e36839054dc7db4edc7303409bcee70b7
-status: review
+status: done
 ---
 
 # E1-S5 — Cross-subsidiary roll-up (read model)
@@ -75,4 +75,4 @@ runtime-sound by the repo-access layer) + icon-class/test-convention nitpicks.
 - [x] [Review][Defer] `compute()` effect has no abort/cancel guard (set-state-after-unmount race on fast scope changes); matches the repo's load-effect convention. [`useRollup.ts:134`]
 
 ## Status
-review
+done

@@ -583,7 +583,7 @@ claude-sonnet-4-6
 - **2026-06-08** — Sidebar re-alignment to the prototype: Workspace/Tenancy nav groups, Subsidiaries=`network` + Roll-up=`layers` icons, roll-up stays all-roles (DEC-CC-6). 4 new fidelity tests; suite 573/573. Status → review.
 
 ## Status
-review
+done
 
 ## Review Findings (code-review 2026-06-08)
 

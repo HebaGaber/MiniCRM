@@ -45,7 +45,7 @@
 
 generated: 2026-06-07
 
-last_updated: 2026-06-08  # E1-S5 → review (fidelity re-alignment + tsc-green, correct-course DEC-CC-5/6)
+last_updated: 2026-06-08  # E1-S2..S5 → done (correct-course re-alignment reviewed; gates green)
 
 project: MiniCRM
 project_key: NOKEY
@@ -72,10 +72,10 @@ development_status:
   # ---- Epic 1: Tenancy & Subsidiary — PILOT ----
   epic-1: in-progress
   1-1-thread-tenantcontext-and-enforce-isolation: ready-for-dev
-  1-2-onboard-a-subsidiary: review
-  1-3-offboard-a-subsidiary-soft-delete-reassign-orphans: review
-  1-4-switcher-in-appshell: review
-  1-5-cross-subsidiary-roll-up-read-model: review
+  1-2-onboard-a-subsidiary: done
+  1-3-offboard-a-subsidiary-soft-delete-reassign-orphans: done
+  1-4-switcher-in-appshell: done
+  1-5-cross-subsidiary-roll-up-read-model: done
   epic-1-retrospective: optional
 
   # ---- Epic 2: Leads — Capture → Qualify — PILOT ----

@@ -2,7 +2,7 @@
 id: E1-S2
 title: Onboard a subsidiary
 baseline_commit: 4bb9544e36839054dc7db4edc7303409bcee70b7
-status: review
+status: done
 ---
 
 # E1-S2 — Onboard a subsidiary
@@ -79,4 +79,4 @@ prototype and conveys state via `aria-checked` + track color + lucide-class/lite
 - [x] [Review][Defer] Segmented OutcomePicker buttons lack `aria-pressed` (state conveyed visually); minor a11y, matches the prototype; dev-only fault-injection control. [`OnboardForm.tsx` OutcomePicker]
 
 ## Status
-review
+done

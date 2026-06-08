@@ -492,4 +492,4 @@ matches-prototype / negligible items).
 - [x] [Review][Defer] First saga tick uses `baseMs` vs the prototype's hardcoded `200` (120ms under reduced-motion) — minor accepted deviation. [`OffboardDialog.tsx:214`]
 
 ## Status
-review
+done
