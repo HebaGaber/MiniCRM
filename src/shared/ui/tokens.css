@@ -1,0 +1,71 @@
+/* ============================================================
+   min-crm — CRM-layer tokens
+   Imports the iSolution DS foundations and adds CRM-specific
+   tokens not exposed by the DS (motion, scrim, animations).
+   ============================================================ */
+
+@import './tokens/colors_and_type.css';
+@import './tokens/motion.css';
+
+:root {
+  /* DEC-CC-4: Overlay scrim / backdrop-blur — not in DS.
+     Realized values: rgba(15,22,38,0.42) + blur(2px).
+     Components reference these token names, never the raw values. */
+  --crm-scrim: rgba(15, 22, 38, 0.42);
+  --crm-backdrop-blur: blur(2px);
+}
+
+/* ---- Skeleton shimmer ---------------------------------------- */
+@keyframes crm-skel-shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
+}
+
+.crm-skel {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--iso-n-100) 25%,
+    var(--iso-n-50)  50%,
+    var(--iso-n-100) 75%
+  );
+  background-size: 200% 100%;
+  animation: crm-skel-shimmer 1.4s var(--crm-ease-standard) infinite;
+  border-radius: var(--iso-radius-sm);
+}
+
+/* ---- Dialog pop entry --------------------------------------- */
+@keyframes crm-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(calc(-6px * var(--crm-travel)));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Table row hover --------------------------------------- */
+.crm-trow:hover:not([data-active='true']) {
+  background-color: var(--iso-n-50);
+}
+
+.crm-trow:focus-visible {
+  outline: 2px solid var(--iso-brand);
+  outline-offset: -2px;
+}
+
+/* ---- Nav button -------------------------------------------- */
+.crm-navbtn {
+  width: 100%;
+  border: 0;
+  border-radius: var(--iso-radius-sm);
+  cursor: pointer;
+  text-align: left;
+}
+
+.crm-navbtn:focus-visible {
+  outline: 2px solid var(--iso-brand);
+  outline-offset: 1px;
+}
