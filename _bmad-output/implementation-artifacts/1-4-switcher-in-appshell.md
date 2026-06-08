@@ -557,3 +557,34 @@ claude-sonnet-4-6
 - `vitest.config.ts` — added `setupFiles: ['src/test-setup.ts']`
 - `_bmad-output/implementation-artifacts/1-4-switcher-in-appshell.md` — story file
 - `_bmad-output/implementation-artifacts/sprint-status.yaml` — status → done
+
+---
+
+## Dev Agent Record — correct-course re-alignment (2026-06-08)
+
+**Agent Model Used:** claude-opus-4-8[1m]
+
+**Context:** UI-fidelity re-alignment to the prototype sidebar (DEC-CC-5/6) via `bmad-dev-story E1-S4`. The story was previously `done`; this pass brings the sidebar nav to the tightened pins. The ScopeSwitcher chip/dropdown already matched the prototype and was left unchanged.
+
+### Completion Notes
+- **Sidebar grouping (DEC-CC-5):** `NAV_ITEMS` gained a `group` field and a `NAV_GROUPS` constant; the sidebar now renders two labelled groups — **Workspace** (Leads, Customers, Tickets) and **Tenancy** (Subsidiaries, Roll-up) — replacing the single hardcoded "Workspace" header over a flat list. Mirrors `prototype/app/shell.jsx` `Sidebar` + `config.jsx` NAV (Dashboard/Audit omitted — not-yet-built epics).
+- **Per-item icons (DEC-CC-5):** Subsidiaries `layers` → **`network`**; Roll-up `bar-chart-2` → **`layers`** (the two were swapped relative to the prototype).
+- **Roll-up role-gating (DEC-CC-6):** unchanged — Roll-up stays visible to all roles (`tenant_admin`/`sales`/`support`/`viewer`); the prototype's admin-only nav gate is the stale artifact. Pinned by a non-admin-visibility test.
+- **Gates:** `vitest` 573/573 · touched files `eslint` clean · `npx tsc -b` adds **zero** new errors (the 4 remaining are pre-existing E1-S5 debt, cleared in the E1-S5 pass).
+- Not changed: the `scopeLoading` re-query skeleton and offboarded-scope snap-back are owned by `AppShellWithSubsidiaries` (router) and already correct; the switcher chip/dropdown copy + icons already matched the prototype.
+
+### File List
+- `src/shared/ui/components/AppShell.tsx` — `NavGroupId`/`group` on `NavItem`; `NAV_GROUPS`; icons `network`/`layers`; reordered items; grouped sidebar render.
+- `src/shared/ui/components/AppShell.fidelity.test.tsx` — NEW: Workspace/Tenancy group labels, Subsidiaries=network + Roll-up=layers icons, non-admin Roll-up visibility (DEC-CC-6).
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` — `1-4` → in-progress → review.
+- `_bmad-output/planning-artifacts/epics/epic-1-tenancy-subsidiary/E1-S4.md` — `baseline_commit` added (DEC-CC-5/6 pins added in the prior correct-course pass).
+
+### Change Log
+- **2026-06-08** — Sidebar re-alignment to the prototype: Workspace/Tenancy nav groups, Subsidiaries=`network` + Roll-up=`layers` icons, roll-up stays all-roles (DEC-CC-6). 4 new fidelity tests; suite 573/573. Status → review.
+
+## Status
+review
+
+## Review Findings (code-review 2026-06-08)
+
+Reviewed jointly with E1-S5 (combined adversarial review). **Clean for E1-S4** — all E1-S4 ACs + DEC-CC-5/6 pins satisfied (Workspace/Tenancy groups, Subsidiaries=`network` / Roll-up=`layers` icons, roll-up visible to all roles); no findings. The combined review's deferred items are all in E1-S5 (see `1-5-cross-subsidiary-roll-up-read-model.md` → Review Findings).

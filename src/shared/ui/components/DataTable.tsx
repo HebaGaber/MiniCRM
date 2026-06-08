@@ -24,8 +24,10 @@ type RowAction = {
 }
 
 type EmptyConfig = {
+  icon?: string
   title?: string
   body?: string
+  scopeLine?: string
   action?: { label: string; icon?: string; onClick: () => void; autoFocus?: boolean }
 }
 
@@ -239,8 +241,10 @@ export function DataTable<R extends { id?: string | number }>({
   } else if (state === 'empty') {
     bodyContent = (
       <EmptyState
+        icon={empty?.icon}
         title={empty?.title ?? 'Nothing here yet'}
         body={empty?.body ?? 'When records exist in this scope, they appear here.'}
+        scopeLine={empty?.scopeLine}
         action={empty?.action}
       />
     )

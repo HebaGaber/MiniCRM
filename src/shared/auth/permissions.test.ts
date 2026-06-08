@@ -69,6 +69,7 @@ const EXPECTED: Record<Capability, Record<Role, ExpectedGrant>> = {
   "ticket.manage": { tenant_admin: "allow", sales: "view", support: "allow", viewer: "view" },
   "audit.view": { tenant_admin: "allow", sales: "own", support: "own", viewer: "deny" },
   "record.deleteExport": { tenant_admin: "allow", sales: "restricted", support: "restricted", viewer: "deny" },
+  "rollup.view": { tenant_admin: "allow", sales: "view", support: "view", viewer: "view" }, // DEC-CC-6 (roll-up visible to all roles, scoped)
 };
 const ALL_CAPS = Object.keys(EXPECTED) as Capability[];
 const ALL_ROLES: Role[] = ["tenant_admin", "sales", "support", "viewer"];

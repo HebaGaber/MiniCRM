@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Subsidiary } from "../../shared/domain/tenant.types";
-import type { Repository } from "../../shared/data/Repository";
+import type { Repository, ListQuery } from "../../shared/data/Repository";
 import type { Lead } from "../../shared/domain/lead.types";
 import type { Customer } from "../../shared/domain/customer.types";
 import type { Ticket } from "../../shared/domain/ticket.types";
@@ -75,14 +75,13 @@ export function useRollup({ subsidiaryRepo, leadRepo, customerRepo, ticketRepo, 
 
       // Count per subsidiary via per-sub filtered queries — page.total is accurate
       // regardless of record volume (not capped by the 100-row pageSize limit).
+      // Minimal structural type that all three repos satisfy — avoids an unsafe
+      // Repository<T> upcast (T is invariant through create()) while still calling list().
       const countFor = async (
-        repo: Repository<Lead> | Repository<Customer> | Repository<Ticket>,
+        repo: { list: (q?: ListQuery) => Promise<{ total: number }> },
         subId: ID | null,
       ): Promise<number> => {
-        const p = await (repo as Repository<{ subsidiaryId: ID | null }>).list({
-          filter: { subsidiaryId: subId },
-          pageSize: 1,
-        });
+        const p = await repo.list({ filter: { subsidiaryId: subId }, pageSize: 1 });
         return p.total;
       };
 
@@ -122,7 +121,9 @@ export function useRollup({ subsidiaryRepo, leadRepo, customerRepo, ticketRepo, 
 
       setRows(allRows);
       setTotals(t);
-      setState(t.grand === 0 && visibleSubs.length === 0 ? "empty" : "ready");
+      // Empty fires on a zero grand total regardless of subsidiary count (AC4): a tenant
+      // whose subsidiaries hold no records shows the empty state, not an all-zeros table.
+      setState(t.grand === 0 ? "empty" : "ready");
     } catch (err) {
       setError(new Error("Can't load roll-up"));
       setState("error");
@@ -131,6 +132,8 @@ export function useRollup({ subsidiaryRepo, leadRepo, customerRepo, ticketRepo, 
   }, [subsidiaryRepo, leadRepo, customerRepo, ticketRepo, session]);
 
   useEffect(() => {
+    // Intentional compute-on-mount/scope-change; matches the repo's load-effect convention.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void compute();
   }, [compute]);
 

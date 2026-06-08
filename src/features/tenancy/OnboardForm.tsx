@@ -10,7 +10,6 @@ import { useEffect, useRef, useState } from "react";
 import type { Repository } from "../../shared/data/Repository";
 import type { Subsidiary } from "../../shared/domain/tenant.types";
 import { EntityForm, TextField, SelectField } from "../../shared/ui/templates/EntityForm";
-import { Button } from "../../shared/ui/components/Button";
 import { Icon } from "../../shared/ui/components/Icon";
 import { pushToast } from "../../shared/ui/components/Toast";
 import { z } from "zod";
@@ -95,7 +94,7 @@ export function OnboardForm({ repo, activeSubs, onClose, onOptimisticAdd, onRoll
         onRollback(created.id);
         pushToast({
           tone: "danger",
-          title: "Couldn't onboard — rolled back",
+          title: "Couldn't onboard — rolled back.",
           body: "The subsidiary was removed. Try again.",
           action: { label: "Retry", onClick: () => {} },
         });
@@ -115,18 +114,27 @@ export function OnboardForm({ repo, activeSubs, onClose, onOptimisticAdd, onRoll
   ];
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        role="presentation"
-        onClick={onClose}
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.25)",
-          zIndex: 200,
-        }}
-      />
+    // Scrim + top-anchored layout (prototype ModalShell). DEC-CC-4: scrim/blur are DS
+    // tokens, never a raw rgba(); the panel is anchored ~64px from top, not centered.
+    <div
+      role="presentation"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: "var(--iso-z-modal)",
+        background: "var(--crm-scrim)",
+        backdropFilter: "var(--crm-backdrop-blur)",
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        padding: "64px 24px",
+        overflow: "auto",
+        animation: "crm-fade var(--crm-base) var(--crm-ease-decelerate)",
+      }}
+    >
       {/* Panel — crm-pop modal enter */}
       <div
         ref={panelRef}
@@ -134,13 +142,8 @@ export function OnboardForm({ repo, activeSubs, onClose, onOptimisticAdd, onRoll
         aria-modal="true"
         aria-label="Onboard subsidiary"
         style={{
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
           width: "500px",
-          maxWidth: "calc(100vw - 32px)",
-          zIndex: 201,
+          maxWidth: "100%",
           animation: "crm-pop var(--crm-base) var(--crm-ease-decelerate)",
         }}
       >
@@ -185,7 +188,7 @@ export function OnboardForm({ repo, activeSubs, onClose, onOptimisticAdd, onRoll
                   gap: 10,
                   padding: "11px 13px",
                   borderRadius: "var(--iso-radius-sm)",
-                  background: "var(--iso-brand-soft)",
+                  background: "var(--iso-blue-3-50)",
                   border: "1px solid var(--iso-border-muted)",
                 }}
               >
@@ -210,7 +213,7 @@ export function OnboardForm({ repo, activeSubs, onClose, onOptimisticAdd, onRoll
           )}
         </EntityForm>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -223,35 +226,66 @@ function OutcomePicker({
   outcome: "success" | "fail";
   onChange: (v: "success" | "fail") => void;
 }) {
+  const options = [
+    { value: "success", label: "Success" },
+    { value: "fail", label: "Server error" },
+  ] as const;
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
-        gap: "var(--iso-space-3)",
-        padding: "var(--iso-space-2) var(--iso-space-3)",
-        borderRadius: "var(--iso-radius-sm)",
-        background: "var(--iso-bg-subtle)",
-        border: "1px solid var(--iso-border-muted)",
+        gap: 12,
+        padding: "11px 13px",
+        borderRadius: "var(--iso-radius-md)",
+        background: "var(--iso-blue-3-50)",
+        border: "1px dashed var(--iso-blue-3-300)",
       }}
     >
+      <Icon
+        name="flask-conical"
+        size={15}
+        style={{ color: "var(--iso-accent)", flexShrink: 0 }}
+      />
       <span
-        style={{ font: "500 11px/1 var(--iso-font-ui)", color: "var(--iso-fg-subtle)" }}
+        style={{ flex: 1, font: "400 12px/1.3 var(--iso-font-ui)", color: "var(--iso-fg-muted)" }}
       >
-        Simulate server response:
+        Simulate server response
       </span>
-      {(["success", "fail"] as const).map((val) => (
-        <Button
-          key={val}
-          variant={outcome === val ? "primary" : "ghost"}
-          size="sm"
-          type="button"
-          onClick={() => onChange(val)}
-          data-testid={`outcome-${val}`}
-        >
-          {val === "success" ? "Success" : "Server error"}
-        </Button>
-      ))}
+      <div
+        style={{
+          display: "inline-flex",
+          gap: 2,
+          padding: 2,
+          background: "var(--iso-bg)",
+          border: "1px solid var(--iso-border)",
+          borderRadius: "var(--iso-radius-sm)",
+        }}
+      >
+        {options.map((o) => {
+          const active = outcome === o.value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => onChange(o.value)}
+              data-testid={`outcome-${o.value}`}
+              style={{
+                height: 26,
+                padding: "0 10px",
+                border: 0,
+                borderRadius: "var(--iso-radius-xs)",
+                background: active ? "var(--iso-brand-soft)" : "transparent",
+                color: active ? "var(--iso-brand)" : "var(--iso-fg-muted)",
+                font: `${active ? 500 : 400} 11px/1 var(--iso-font-ui)`,
+                cursor: "pointer",
+              }}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

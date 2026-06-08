@@ -57,6 +57,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (session === null) {
       prevSessionKeyRef.current = null;
+      // Reset scope-loading when the session clears; intentional effect-driven state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setScopeLoading(false);
       return;
     }

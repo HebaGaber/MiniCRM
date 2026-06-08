@@ -6,8 +6,10 @@ import { ErrorState } from './components/ErrorState'
 export type QueryState = 'loading' | 'empty' | 'error' | 'ready'
 
 type EmptyConfig = {
+  icon?: string
   title?: string
   body?: string
+  scopeLine?: string
   action?: { label: string; icon?: string; onClick: () => void }
 }
 
@@ -56,8 +58,10 @@ export function QueryStateBoundary({
   if (state === 'empty') {
     return (
       <EmptyState
+        icon={empty?.icon}
         title={empty?.title ?? 'Nothing here yet'}
         body={empty?.body ?? 'Records will appear here once they exist.'}
+        scopeLine={empty?.scopeLine}
         action={empty?.action}
       />
     )

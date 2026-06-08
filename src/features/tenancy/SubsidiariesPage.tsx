@@ -20,6 +20,16 @@ import { OffboardDialog } from "./OffboardDialog";
 
 type PageState = "loading" | "empty" | "error" | "ready";
 
+// "12 Jan 2026" form (prototype `r.created`) — explicit `en-GB` locale AND `UTC` zone so
+// the rendered date is fully deterministic (createdAt is a UTC ISO string), never the
+// viewer/CI locale's slash format nor a timezone-shifted calendar day (DEC-CC-5).
+const CREATED_FMT = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
 type Props = {
   repo: Repository<Subsidiary>;
 };
@@ -46,6 +56,8 @@ export function SubsidiariesPage({ repo }: Props) {
   }, [repo, includeOffboarded]);
 
   useEffect(() => {
+    // Intentional load-on-mount; matches AppShellWithSubsidiaries' convention.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 
@@ -150,7 +162,7 @@ export function SubsidiariesPage({ repo }: Props) {
       align: "right",
       render: (r) => (
         <span style={{ color: "var(--iso-fg-subtle)" }}>
-          {new Date(r.createdAt).toLocaleDateString()}
+          {CREATED_FMT.format(new Date(r.createdAt))}
         </span>
       ),
     },
@@ -206,7 +218,8 @@ export function SubsidiariesPage({ repo }: Props) {
               color: "var(--iso-fg-muted)",
             }}
           >
-            Onboard, offboard and inspect the tenant&#39;s subsidiaries.
+            Onboard, offboard and inspect the tenant&#39;s subsidiaries. Offboarding
+            reassigns active records before a subsidiary leaves.
           </p>
         </div>
         <Button
@@ -257,7 +270,9 @@ export function SubsidiariesPage({ repo }: Props) {
           state={displayState}
           onRetry={load}
           empty={{
+            icon: "network",
             title: "No subsidiaries yet",
+            scopeLine: "Northwind Trading",
             body: "Onboard your first subsidiary to start managing scoped records.",
             action: {
               label: "Onboard subsidiary",
@@ -335,7 +350,8 @@ function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
           height: 16,
           borderRadius: "50%",
           background: "#fff",
-          transform: on ? "translateX(16px)" : "translateX(0)",
+          // --crm-travel scalar → reduced-motion (0) drops the slide entirely (§8.6).
+          transform: `translateX(calc(var(--crm-travel) * ${on ? 16 : 0}px))`,
           transition: "transform var(--crm-fast) var(--crm-ease-standard)",
         }}
       />

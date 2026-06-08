@@ -8,20 +8,33 @@ import type { DomainEvent } from '../../events/bus'
 import type { Role } from '../../domain/status'
 import type { ID } from '../../domain/types'
 
+type NavGroupId = 'workspace' | 'tenancy'
+
 type NavItem = {
   id: string
   label: string
   icon: string
   path: string
   roles: Role[]
+  group: NavGroupId
 }
 
+// Sidebar groups + per-item icons mirror the prototype (`config.jsx` NAV, `shell.jsx`
+// Sidebar). Subsidiaries=`network`, Roll-up=`layers` (DEC-CC-5). Roll-up is visible to
+// every role (DEC-CC-6) — the prototype's admin-only nav gate is the stale artifact.
+// Dashboard/Audit (prototype Workspace/Tenancy members) are other epics' surfaces and
+// are omitted here until those routes exist.
+const NAV_GROUPS: { id: NavGroupId; label: string }[] = [
+  { id: 'workspace', label: 'Workspace' },
+  { id: 'tenancy', label: 'Tenancy' },
+]
+
 const NAV_ITEMS: NavItem[] = [
-  { id: 'rollup',      label: 'Roll-up',     icon: 'bar-chart-2',path: '/rollup',      roles: ['tenant_admin', 'sales', 'support', 'viewer'] },
-  { id: 'leads',       label: 'Leads',       icon: 'user-plus',  path: '/leads',       roles: ['tenant_admin', 'sales'] },
-  { id: 'customers',   label: 'Customers',   icon: 'building-2', path: '/customers',   roles: ['tenant_admin', 'sales', 'support', 'viewer'] },
-  { id: 'tickets',     label: 'Tickets',     icon: 'life-buoy',  path: '/tickets',     roles: ['tenant_admin', 'support', 'sales'] },
-  { id: 'subsidiaries',label: 'Subsidiaries',icon: 'layers',     path: '/subsidiaries',roles: ['tenant_admin'] },
+  { id: 'leads',       label: 'Leads',       icon: 'user-plus',  path: '/leads',       roles: ['tenant_admin', 'sales'],                      group: 'workspace' },
+  { id: 'customers',   label: 'Customers',   icon: 'building-2', path: '/customers',   roles: ['tenant_admin', 'sales', 'support', 'viewer'], group: 'workspace' },
+  { id: 'tickets',     label: 'Tickets',     icon: 'life-buoy',  path: '/tickets',     roles: ['tenant_admin', 'support', 'sales'],           group: 'workspace' },
+  { id: 'subsidiaries',label: 'Subsidiaries',icon: 'network',    path: '/subsidiaries',roles: ['tenant_admin'],                               group: 'tenancy' },
+  { id: 'rollup',      label: 'Roll-up',     icon: 'layers',     path: '/rollup',      roles: ['tenant_admin', 'sales', 'support', 'viewer'], group: 'tenancy' },
 ]
 
 function Wordmark({ collapsed }: { collapsed: boolean }) {
@@ -409,46 +422,57 @@ export function AppShell({ children, activeSubs = [] }: AppShellProps) {
           overflowX: 'hidden',
         }}
       >
-        {!collapsed && (
-          <div
-            style={{
-              font: '500 10px/1 var(--iso-font-ui)',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              color: 'var(--iso-fg-subtle)',
-              padding: 'var(--iso-space-2) var(--iso-space-3) var(--iso-space-1-5)',
-            }}
-          >
-            Workspace
-          </div>
-        )}
-
-        {visibleNav.map(item => {
-          const isActive = location.pathname.startsWith(item.path)
+        {NAV_GROUPS.map(group => {
+          const groupItems = visibleNav.filter(item => item.group === group.id)
+          if (groupItems.length === 0) return null
           return (
-            <Link
-              key={item.id}
-              to={item.path}
-              title={collapsed ? item.label : undefined}
-              aria-current={isActive ? 'page' : undefined}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: collapsed ? 0 : '11px',
-                height: '38px',
-                padding: collapsed ? 0 : '0 var(--iso-space-3)',
-                justifyContent: collapsed ? 'center' : 'flex-start',
-                borderRadius: 'var(--iso-radius-sm)',
-                textDecoration: 'none',
-                background: isActive ? 'var(--iso-brand)' : 'transparent',
-                color: isActive ? 'var(--iso-fg-on-brand)' : 'var(--iso-fg-muted)',
-                font: `${isActive ? 500 : 400} 13px/1 var(--iso-font-body)`,
-                transition: 'color var(--crm-fast) var(--crm-ease-standard)',
-              }}
-            >
-              <Icon name={item.icon} size={17} />
-              {!collapsed && item.label}
-            </Link>
+            <React.Fragment key={group.id}>
+              {!collapsed && (
+                <div
+                  style={{
+                    font: '500 10px/1 var(--iso-font-ui)',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: 'var(--iso-fg-subtle)',
+                    // First group sits tighter under the logo; later groups get extra top space (prototype Sidebar).
+                    padding:
+                      group.id === 'workspace'
+                        ? 'var(--iso-space-2) var(--iso-space-3) var(--iso-space-1-5)'
+                        : 'var(--iso-space-3-5) var(--iso-space-3) var(--iso-space-1-5)',
+                  }}
+                >
+                  {group.label}
+                </div>
+              )}
+              {groupItems.map(item => {
+                const isActive = location.pathname.startsWith(item.path)
+                return (
+                  <Link
+                    key={item.id}
+                    to={item.path}
+                    title={collapsed ? item.label : undefined}
+                    aria-current={isActive ? 'page' : undefined}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: collapsed ? 0 : '11px',
+                      height: '38px',
+                      padding: collapsed ? 0 : '0 var(--iso-space-3)',
+                      justifyContent: collapsed ? 'center' : 'flex-start',
+                      borderRadius: 'var(--iso-radius-sm)',
+                      textDecoration: 'none',
+                      background: isActive ? 'var(--iso-brand)' : 'transparent',
+                      color: isActive ? 'var(--iso-fg-on-brand)' : 'var(--iso-fg-muted)',
+                      font: `${isActive ? 500 : 400} 13px/1 var(--iso-font-body)`,
+                      transition: 'color var(--crm-fast) var(--crm-ease-standard)',
+                    }}
+                  >
+                    <Icon name={item.icon} size={17} />
+                    {!collapsed && item.label}
+                  </Link>
+                )
+              })}
+            </React.Fragment>
           )
         })}
 

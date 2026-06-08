@@ -4,7 +4,7 @@
 // These tests live in src/app/ (same layer as router.tsx) so they can import
 // the component and mock its direct dependencies without breaking NFR-1 layering.
 
-import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, act, waitFor, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from '../shared/auth/authContext';

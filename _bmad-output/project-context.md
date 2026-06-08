@@ -238,8 +238,11 @@ Error codes: `400` malformed, `401` unauthenticated, `403` unauthorized (role/te
 | Tickets: **create** (DEC-CC-1) | ✅ | ✅ | ✅ | ✅ |
 | Tickets: edit/assign | ✅ | read | ✅ | read |
 | View audit/events | ✅ | own | own | — |
+| Cross-subsidiary roll-up: **view** (DEC-CC-6) | ✅ tenant-wide | scoped | scoped | scoped |
 
 > **DEC-CC-1 (2026-06-07, prototype reconciliation):** ticket **creation** is granted to **every role** (incl. `sales` and `viewer`) — tickets are the one entity anyone in scope may raise. Ticket **edit/assign** is unchanged (admin/support write; sales/viewer read). Customer **edit** stays `support = read` (C-2 ruled "keep constitution"). See `_bmad-output/decision-log.md`.
+
+> **DEC-CC-6 (2026-06-08, prototype reconciliation — conflict C-5):** the cross-subsidiary roll-up (`rollup.view`, E1-S5) is **visible to every role**, not admin-only: `tenant_admin` sees **tenant-wide** aggregates; `sales`/`support`/`viewer` see a **scope-limited** roll-up (own subsidiary + parent-level only — never sibling-subsidiary counts, enforced by the E1-S1 scope filter). The prototype's admin-only nav gate (`prototype/app/config.jsx:43` `roles: ['tenant_admin']`) is the **stale artifact** and is *not* to be rebuilt; the encoded matrix (`permissions.ts` `rollup.view`) and E1-S5 AC3 win. See `_bmad-output/decision-log.md`.
 
 ### 6.3 Enforcement rules
 1. **Two gates, always:** a route guard (can this role open the screen?) and an action guard (can this role perform this mutation on this record, in this tenant/subsidiary?).
@@ -360,7 +363,7 @@ reserved for transient overlays only; the saga inspector is in-page and does **n
 compensation `base + 80ms`, scope re-query `base + 220ms`, optimistic-undo `~700ms`, offboard tick
 `max(90, base/2)`) are **JS timing constants** — define them as named constants derived from the
 `--crm-*` durations; **never inline raw `ms`/opacity literals in components** (NFR-10). The modal
-overlay scrim is a **DS token** (`--iso-overlay-scrim` + blur token), never a raw `rgba()`/`px`
+overlay scrim is a **DS token** (`--crm-scrim` + `--crm-backdrop-blur`), never a raw `rgba()`/`px`
 (DEC-CC-4).
 
 ## §8.7 Four-state behavior (NFR-9/UC-1) — binds the `<QueryStateBoundary>`

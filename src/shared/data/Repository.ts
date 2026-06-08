@@ -33,7 +33,10 @@ import type { ID, BaseEntity } from "../domain/types";
  *   (E0-S4) — the type only carries the shape.
  */
 export interface ListQuery {
-  filter?: Record<string, string | number | boolean>;
+  // `null` is allowed so a nullable field can be filtered explicitly — e.g. the E1-S5
+  // roll-up counts records by `subsidiaryId`, where `null` = parent-level. The adapter
+  // compares `r[key] === value`, so `null` matches the parent-level bucket.
+  filter?: Record<string, string | number | boolean | null>;
   q?: string; // free-text search
   page?: number; // 1-based
   pageSize?: number; // default 25, max 100 — ENFORCED BY THE ADAPTER (E0-S4), not the type

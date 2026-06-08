@@ -53,6 +53,9 @@ async function fetchAll<T extends BaseEntity>(
 }
 
 /** Count active records owned by a subsidiary across the three entity types. */
+// Intentionally co-exported with the dialog (shared with the impact preview + tests);
+// the impact helper is pure data, not a component. (Pre-existing; flagged clean here.)
+// eslint-disable-next-line react-refresh/only-export-components
 export async function computeOffboardImpact(
   subId: ID,
   session: SessionClaims,
@@ -180,8 +183,12 @@ export function OffboardDialog({ sub, activeSubs, session, onClose, onOffboarded
 
     const failAt = simulateFail ? Math.max(1, Math.floor(total * 0.6)) : -1;
     let i = 0;
-    // Tick interval: max(90, base/2). --crm-base = 200ms → max(90,100) = 100ms.
-    const stepMs = 100;
+    // Tick cadence derived from the --crm-base token (§8.6/NFR-10 — no inline raw ms),
+    // mirroring the prototype's commitOffboard: base read at runtime, step = max(90, base/2).
+    // jsdom (no tokens.css) → getPropertyValue returns "" → falls back to 200 → step 100.
+    const baseMs =
+      parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--crm-base")) || 200;
+    const stepMs = Math.max(90, baseMs / 2);
 
     const tick = () => {
       if (!mountedRef.current) return; // component unmounted — stop ticking
@@ -204,7 +211,7 @@ export function OffboardDialog({ sub, activeSubs, session, onClose, onOffboarded
       }
       tickTimerRef.current = setTimeout(tick, stepMs);
     };
-    tickTimerRef.current = setTimeout(tick, 200);
+    tickTimerRef.current = setTimeout(tick, baseMs);
   };
 
   const finish = async () => {
@@ -234,12 +241,14 @@ export function OffboardDialog({ sub, activeSubs, session, onClose, onOffboarded
         (r) => r.subsidiaryId === sub.id && TICKET_ACTIVE.has(r.status),
       );
 
-      // Reassign active leads
+      // Reassign active leads. Move ONLY subsidiaryId — preserve the existing ownerId
+      // (DEC-CC-5 ruling 2026-06-08): orphans are not reassigned to the acting admin, and
+      // the app has no per-subsidiary owner roster to re-scope to (unlike the prototype).
       for (const lead of activeLeads) {
         await leadRepo.reassign(
           lead.id,
           targetSubsidiaryId,
-          { ownerId: session.userId },
+          {},
           lead.version,
           correlationId,
         );
@@ -256,12 +265,13 @@ export function OffboardDialog({ sub, activeSubs, session, onClose, onOffboarded
         );
       }
 
-      // Reassign active tickets
+      // Reassign active tickets. Move ONLY subsidiaryId — preserve the existing assigneeId
+      // (DEC-CC-5 ruling, same as leads/customers above).
       for (const ticket of activeTickets) {
         await ticketRepo.reassign(
           ticket.id,
           targetSubsidiaryId,
-          { assigneeId: session.userId },
+          {},
           ticket.version,
           correlationId,
         );
@@ -294,20 +304,28 @@ export function OffboardDialog({ sub, activeSubs, session, onClose, onOffboarded
   };
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        role="presentation"
-        onClick={() => {
-          if (!runningRef.current) onClose();
-        }}
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.25)",
-          zIndex: 200,
-        }}
-      />
+    // Scrim + top-anchored layout (prototype ModalShell). DEC-CC-4: scrim/blur are DS
+    // tokens, never a raw rgba(); the panel is anchored ~64px from top, not centered.
+    // Outside-click closes only while NOT running (the saga must not be interrupted).
+    <div
+      role="presentation"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget && !runningRef.current) onClose();
+      }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: "var(--iso-z-modal)",
+        background: "var(--crm-scrim)",
+        backdropFilter: "var(--crm-backdrop-blur)",
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        padding: "64px 24px",
+        overflow: "auto",
+        animation: "crm-fade var(--crm-base) var(--crm-ease-decelerate)",
+      }}
+    >
       {/* Panel */}
       <div
         ref={panelRef}
@@ -316,16 +334,11 @@ export function OffboardDialog({ sub, activeSubs, session, onClose, onOffboarded
         aria-labelledby="offboard-dialog-title"
         data-testid="offboard-dialog"
         style={{
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
           width: "500px",
-          maxWidth: "calc(100vw - 32px)",
+          maxWidth: "100%",
           background: "var(--iso-bg)",
           borderRadius: "var(--iso-radius-xl)",
           boxShadow: "var(--iso-shadow-modal)",
-          zIndex: 201,
           animation: "crm-pop var(--crm-base) var(--crm-ease-decelerate)",
         }}
       >
@@ -399,7 +412,7 @@ export function OffboardDialog({ sub, activeSubs, session, onClose, onOffboarded
                         flex: 1,
                         padding: "12px 14px",
                         borderRadius: "var(--iso-radius-sm)",
-                        background: "var(--iso-brand-soft)",
+                        background: "var(--iso-blue-3-50)",
                         border: "1px solid var(--iso-border-muted)",
                       }}
                     >
@@ -434,7 +447,7 @@ export function OffboardDialog({ sub, activeSubs, session, onClose, onOffboarded
                 onChange={setTarget}
                 options={targetOptions}
                 placeholder="Choose a target…"
-                help="Records and their ownership move to this target. Targets are limited to active subsidiaries in this tenant."
+                help="Records move to this target; their owners are preserved. Targets are limited to active subsidiaries in this tenant."
                 data-testid="target-select"
               />
 
@@ -504,7 +517,7 @@ export function OffboardDialog({ sub, activeSubs, session, onClose, onOffboarded
                   color: "var(--iso-fg-subtle)",
                 }}
               >
-                Moving leads, customers and tickets and re-scoping their owners…
+                Moving leads, customers and tickets to the new scope…
               </span>
             </div>
           )}
@@ -545,7 +558,7 @@ export function OffboardDialog({ sub, activeSubs, session, onClose, onOffboarded
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -577,7 +590,8 @@ function InlineToggle({ on, onChange }: { on: boolean; onChange: () => void }) {
           height: 16,
           borderRadius: "50%",
           background: "var(--iso-bg)",
-          transform: on ? "translateX(16px)" : "translateX(0)",
+          // --crm-travel scalar → reduced-motion (0) drops the slide entirely (§8.6).
+          transform: `translateX(calc(var(--crm-travel) * ${on ? 16 : 0}px))`,
           transition: "transform var(--crm-fast) var(--crm-ease-standard)",
         }}
       />

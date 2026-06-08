@@ -11,6 +11,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../shared/auth/useAuth";
+import type { Role } from "../../shared/domain/status";
 import type { Repository } from "../../shared/data/Repository";
 import type { Subsidiary } from "../../shared/domain/tenant.types";
 import type { Lead } from "../../shared/domain/lead.types";
@@ -45,6 +46,14 @@ const COL_STYLE: React.CSSProperties = {
 };
 
 const GRID_COLS = "1.6fr repeat(4, 1fr)";
+
+// Human role labels for the eyebrow (prototype shows the display label, not the raw id).
+const ROLE_LABELS: Record<Role, string> = {
+  tenant_admin: "Tenant admin",
+  sales: "Sales",
+  support: "Support",
+  viewer: "Viewer",
+};
 
 function TableHeader() {
   return (
@@ -116,8 +125,11 @@ export function RollupPage({ subsidiaryRepo, leadRepo, customerRepo, ticketRepo 
   });
 
   const isTenantScope = session?.subsidiaryId === null;
-  const roleName = session?.roles[0] ?? "viewer";
-  const scopeName = session?.tenantId ?? "this workspace";
+  const roleLabel = ROLE_LABELS[session?.roles[0] ?? "viewer"];
+  // Scope DISPLAY name (prototype): tenant → "Whole tenant (roll-up)"; otherwise the
+  // current subsidiary's name (resolved from the loaded rows — falls back during load).
+  const currentSubName = rows.find((r) => r.id === session?.subsidiaryId)?.name;
+  const scopeName = isTenantScope ? "Whole tenant (roll-up)" : currentSubName ?? "Your subsidiary";
 
   return (
     <div style={PAGE_PAD}>
@@ -140,7 +152,7 @@ export function RollupPage({ subsidiaryRepo, leadRepo, customerRepo, ticketRepo 
               marginBottom: "var(--iso-space-1)",
             }}
           >
-            {roleName} · {scopeName}
+            {roleLabel} · {scopeName}
           </div>
           <h1
             style={{
@@ -204,7 +216,9 @@ export function RollupPage({ subsidiaryRepo, leadRepo, customerRepo, ticketRepo 
             </>
           }
           empty={{
+            icon: "layers",
             title: "Nothing to roll up yet",
+            scopeLine: scopeName,
             body: "Once subsidiaries hold records, their counts aggregate here.",
           }}
         >
