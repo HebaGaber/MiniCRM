@@ -45,7 +45,7 @@
 
 generated: 2026-06-07
 
-last_updated: 2026-06-08  # E0-S12 → ready-for-dev
+last_updated: 2026-06-08  # E0-S11 → done
 
 project: MiniCRM
 project_key: NOKEY
@@ -65,7 +65,7 @@ development_status:
   0-8-structured-logger: done
   0-9-shared-component-inventory-page-templates: review
   0-10-flag-config-provider-noop-external-ports: review
-  0-11-testing-harness-universal-dod-codified: backlog
+  0-11-testing-harness-universal-dod-codified: done
   0-12-notifications-kernel: done
   epic-0-retrospective: optional
 
