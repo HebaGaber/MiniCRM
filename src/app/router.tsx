@@ -1,9 +1,9 @@
-// App router (E1-S2, AC1). Two-gate authZ: route guard + action guard.
+// App router (E1-S2, AC1; E1-S4 scope switcher). Two-gate authZ: route guard + action guard.
 // Routes for features gated by capability; out-of-tenant/missing → NotFoundPage.
 // Unauthenticated users are redirected to /sign-in (demo role picker).
 // NFR-1: src/app imports shared/* and features/* — never reverse.
 
-import { type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { AppShell } from "../shared/ui/components/AppShell";
 import { RouteGuard } from "../shared/auth/guards";
@@ -12,6 +12,9 @@ import { SubsidiariesPage } from "../features/tenancy/SubsidiariesPage";
 import { useRepository } from "./composition";
 import { SUBSIDIARY_CONFIG } from "../features/tenancy/subsidiaryConfig";
 import { useAuth } from "../shared/auth/useAuth";
+import { subscribe } from "../shared/events/bus";
+import type { DomainEvent } from "../shared/events/bus";
+import type { Subsidiary } from "../shared/domain/tenant.types";
 import type { Role } from "../shared/domain/status";
 
 function NotFoundPage() {
@@ -25,6 +28,59 @@ function SubsidiariesRoute() {
   const repo = useRepository(SUBSIDIARY_CONFIG);
   if (!repo) return null;
   return <SubsidiariesPage repo={repo} />;
+}
+
+// ── AppShellWithSubsidiaries (E1-S4) ─────────────────────────────────────────
+// Loads active subsidiaries and passes them to AppShell for the scope switcher.
+// Also handles scope snap-back if the current scope becomes offboarded.
+
+export function AppShellWithSubsidiaries({ children }: { children: ReactNode }) {
+  const { session, setSubsidiaryScope } = useAuth();
+  const repo = useRepository(SUBSIDIARY_CONFIG);
+  const [activeSubs, setActiveSubs] = useState<Subsidiary[]>([]);
+
+  const loadSubs = useCallback(async () => {
+    if (!repo) return;
+    try {
+      const page = await repo.list({ filter: { includeDeleted: false }, pageSize: 100 });
+      setActiveSubs(page.data);
+    } catch {
+      // silent — switcher shows empty list, not an error state
+    }
+  }, [repo]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadSubs();
+  }, [loadSubs]);
+
+  // Snap-back: if current scope was offboarded, reset to tenant level
+  useEffect(() => {
+    if (!session || session.subsidiaryId === null) return;
+    if (activeSubs.length === 0) return; // still loading — avoid false snap
+    const stillActive = activeSubs.some(s => s.id === session.subsidiaryId);
+    if (!stillActive) {
+      setSubsidiaryScope(null, session.tenantId);
+    }
+  }, [activeSubs, session, setSubsidiaryScope]);
+
+  // Refresh sub list when subsidiaries are onboarded or offboarded
+  useEffect(() => {
+    return subscribe((event: DomainEvent) => {
+      if (
+        event.type === 'Tenant.SubsidiaryAdded' ||
+        event.type === 'Tenant.SubsidiaryRemoved'
+      ) {
+        void loadSubs();
+      }
+    });
+  }, [loadSubs]);
+
+  return (
+    <AppShell activeSubs={activeSubs}>
+      {children}
+    </AppShell>
+  );
 }
 
 // ── Demo sign-in page (shown when no session exists) ─────────────────────────
@@ -114,7 +170,7 @@ export function AppRouter() {
           path="/*"
           element={
             <RequireAuth>
-              <AppShell>
+              <AppShellWithSubsidiaries>
                 <Routes>
                   <Route path="/" element={<Navigate to="/subsidiaries" replace />} />
                   <Route
@@ -127,7 +183,7 @@ export function AppRouter() {
                   />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
-              </AppShell>
+              </AppShellWithSubsidiaries>
             </RequireAuth>
           }
         />

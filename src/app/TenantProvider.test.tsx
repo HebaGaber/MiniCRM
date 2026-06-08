@@ -34,6 +34,7 @@ function makeAuthValue(session: SessionClaims | null): AuthContextValue {
     isAuthenticated: session !== null,
     signIn: vi.fn(),
     signOut: vi.fn(),
+    setSubsidiaryScope: vi.fn(),
   };
 }
 

@@ -34,10 +34,15 @@ export interface SessionClaims {
  * - `session` is `null` when no one is signed in (and after a failed sign-in).
  * - `signIn(roleId)` resolves a picked role to canonical claims (mock SSO); an
  *   unknown role leaves `session` null and emits `Auth.LoginFailed` (does not throw).
+ * - `setSubsidiaryScope(id, tenantId)` switches the active subsidiary scope (E1-S4,
+ *   AC2). `id === null` means whole-tenant roll-up. The implementation validates
+ *   `tenantId === session.tenantId`; a mismatched tenantId is silently rejected
+ *   (mirrors the production X-Subsidiary-Id contract — tenantId always from token).
  */
 export interface AuthContextValue {
   session: SessionClaims | null;
   isAuthenticated: boolean;
   signIn: (roleId: string) => void;
   signOut: () => void;
+  setSubsidiaryScope: (id: ID | null, tenantId: ID) => void;
 }

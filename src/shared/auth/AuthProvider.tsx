@@ -223,9 +223,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // E1-S4 (AC2): switch active subsidiary scope within the token's tenant.
+  // Validates the passed tenantId matches the token — never trusts client input
+  // (mirrors production X-Subsidiary-Id header contract, constitution §5.2).
+  // No domain event emitted: scope switching is a UI navigation decision, not an entity mutation.
+  const setSubsidiaryScope = useCallback((id: ID | null, tenantId: ID) => {
+    const current = sessionRef.current;
+    if (current === null) return;
+    if (tenantId !== current.tenantId) return; // cross-tenant rejected (always validated, even for null id)
+    const updated = { ...current, subsidiaryId: id };
+    sessionRef.current = updated;
+    setSession(updated);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ session, isAuthenticated: session !== null, signIn, signOut }),
-    [session, signIn, signOut],
+    () => ({ session, isAuthenticated: session !== null, signIn, signOut, setSubsidiaryScope }),
+    [session, signIn, signOut, setSubsidiaryScope],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

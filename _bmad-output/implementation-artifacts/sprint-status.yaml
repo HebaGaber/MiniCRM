@@ -45,7 +45,7 @@
 
 generated: 2026-06-07
 
-last_updated: 2026-06-08  # E1-S3 → done
+last_updated: 2026-06-08  # E1-S4 → done
 
 project: MiniCRM
 project_key: NOKEY
@@ -74,7 +74,7 @@ development_status:
   1-1-thread-tenantcontext-and-enforce-isolation: ready-for-dev
   1-2-onboard-a-subsidiary: backlog
   1-3-offboard-a-subsidiary-soft-delete-reassign-orphans: done
-  1-4-switcher-in-appshell: backlog
+  1-4-switcher-in-appshell: done
   1-5-cross-subsidiary-roll-up-read-model: backlog
   epic-1-retrospective: optional
 
